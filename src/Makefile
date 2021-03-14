@@ -7,7 +7,7 @@ CFLAGS = -O3 -Wall -std=c99
 # Flags for the linker
 LDFLAGS = -lm
 
-.ALL: ballAlg ballQuery
+all: ballAlg ballQuery
 
 ballAlg: ballAlg.c
 	$(CC) $(CFLAGS) -o $@ $^
