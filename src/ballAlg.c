@@ -1,63 +1,56 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "gen_points.h"
 #include <omp.h>
 #include <math.h>
+#include "gen_points.h"
 
-
-double** pts;
-int n_dims;
-long n_points;
+double** pts; // point list
+int n_dims; // number of dimensions of each point
+long n_points; //number of points in the list
 int root;
 
-
-double distance(double *pt1, double *pt2)
+/*
+* Returns the squared distance between points pt1 and pt2
+*/
+double distance(double* pt1, double* pt2)
 {
     double dist = 0.0;
 
-    for(int d = 0; d < n_dims; d++)
-        dist += (pt1[d] - pt2[d]) * (pt1[d] - pt2[d]);
-    return sqrt(dist);
+    for(int i = 0; i < n_dims; i++)
+        dist += (pt1[i] - pt2[i]) * (pt1[i] - pt2[i]);
+    return dist; 
 }
 
-long getmaxdistanceforindex_x(long index){
-    double max = 0.0;
-    long indexmax = index;
-    for(int p = 0; p < n_points; p++){
-        if(distance(pts[index], pts[p]) > max){
-            max = distance(pts[index], pts[p]);
-            indexmax = p;
+/*
+* Returns the point in pts furthest away from point p
+*/
+double* get_furthest_away_point(double* p, double** pts){
+    double max_distance = 0.0;
+    double* furthest_point = p;
+    for(long i = 0; i < n_points; i++){
+        double curr_distance = distance(p, pts[i]);
+        if(curr_distance > max_distance){
+            max_distance = curr_distance;
+            furthest_point = pts[i];
         }        
     }
-    return indexmax;
+    return furthest_point;
 }
 
-void print_index(long index){
-    double* point = pts[index];
-    printf("the point of index %ld is: ", index);
+/*
+* Print point p to stdout
+*/
+void print_point(double* p) {
     for(int i = 0; i < n_dims; i++){
-           printf(" %.2f  ", point[i]);
+           printf("%.2f ", p[i]);
     }
     printf("\n");
 }
 
-void print_point(double* point){
-    for(int i = 0; i < n_dims; i++){
-           printf(" %.2f  ", point[i]);
-    }
-    printf("\n");
-}
-
-double* mult_point(double* a, double* b){
-
-    double* c = (double*) malloc(sizeof(double)*n_dims);
-    for(int i = 0; i < n_dims; i++){
-        c[i] = a[i] * b[i];
-    }
-    return c;
-}
-
-double* mult_scalar(double* a, double b){
+/*
+* Returns the multiplication of value b by point a
+*/
+double* mul_scalar(double* a, double b){
 
     double* c = (double*) malloc(sizeof(double)*n_dims);
     for(int i = 0; i < n_dims; i++){
@@ -66,7 +59,10 @@ double* mult_scalar(double* a, double b){
     return c;
 }
 
-double dotproduct_points(double* a, double* b){
+/*
+* Returns the dot product of points a and b
+*/
+double dot_product(double* a, double* b){
     double c = 0;
     for(int i = 0; i < n_dims; i++){
         c += a[i] * b[i];
@@ -74,8 +70,9 @@ double dotproduct_points(double* a, double* b){
     return c;
 }
 
-
-
+/*
+* Returns the sum of points a and b
+*/
 double* sum_points(double* a, double* b){
     double* c = (double*) malloc(sizeof(double)*n_dims);
     for(int i = 0; i < n_dims; i++){
@@ -84,6 +81,9 @@ double* sum_points(double* a, double* b){
     return c;
 }
 
+/*
+* Returns the difference of points a and b
+*/
 double* sub_points(double* a, double* b){
     double* c = (double*) malloc(sizeof(double)*n_dims);
     for(int i = 0; i < n_dims; i++){
@@ -92,47 +92,35 @@ double* sub_points(double* a, double* b){
     return c;
 }
 
-
 /*
-po =
-(p − a) · (b − a)
-(b − a) · (b − a)
-(b − a) + a
+* Returns the ortogonal projection of point p onto line ab
 */
-
-double* orthogonal(long a, long b, long p){
-    double* basub = sub_points(pts[b],pts[a]);
-    double* pasub = sub_points(pts[p],pts[a]);
-    double c = dotproduct_points(pasub,basub);
-    double d = dotproduct_points(basub,basub);
+double* orthogonal_projection(double* a, double* b, double* p){
+    double* basub = sub_points(b, a);
+    double* pasub = sub_points(p, a);
+    double c = dot_product(pasub,basub);
+    double d = dot_product(basub,basub);
     double e = c/d;
-    double* f = mult_scalar(basub,e);
-    return sum_points(f, pts[a]);
-
+    double* f = mul_scalar(basub,e);
+    return sum_points(f, a);
 }
-
-
 
 
 int build_tree(){
 
-    long a= getmaxdistanceforindex_x(0);
+    double* a = get_furthest_away_point(pts[0], pts);
 
-    print_index(a);
+    print_point(a);
     
-    long b = getmaxdistanceforindex_x(a);
+    double* b = get_furthest_away_point(a, pts);
 
-    print_index(b);
+    print_point(b);
 
     for(long i = 0; i < n_points; i++){
-        print_point(orthogonal(b,a,i));
+        print_point(orthogonal_projection(b, a, pts[i]));
     }
-
-
-
     return 0;
 }
-
 
 
 int main(int argc, char** argv) {
