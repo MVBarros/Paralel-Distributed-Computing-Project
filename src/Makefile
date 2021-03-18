@@ -2,15 +2,18 @@
 CC = gcc
 
 # Flags for the compiler
-CFLAGS = -O3 -Wall -std=c99
+CFLAGS = -O3 -Wall -std=gnu99
 
 # Flags for the linker
 LDFLAGS = -lm
 
 all: ballAlg ballQuery
 
-ballAlg: ballAlg.c
+ballAlg: ballAlg.c gen_points.o
 	$(CC) $(CFLAGS) -o $@ $^
+
+gen_points.o: gen_points.c
+	$(CC) $(CFLAGS) -c $^
 
 ballQuery: ballQuery.c
 	$(CC) $(CFLAGS) -o $@ $^ ${LDFLAGS}
@@ -19,3 +22,4 @@ ballQuery: ballQuery.c
 .PHONY: clean
 clean: 
 	@rm -f ballAlg ballQuery
+	@rm -f *.o

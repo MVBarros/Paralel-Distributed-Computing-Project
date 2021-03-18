@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "gen_points.h"
 
 #define RANGE 10
 
 extern void print_point(double *, int);
 
-double **create_array_pts(int n_dims, long np)
+static double **create_array_pts(int n_dims, long np)
 {
     double *_p_arr;
     double **p_arr;
