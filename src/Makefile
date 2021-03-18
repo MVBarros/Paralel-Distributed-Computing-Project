@@ -10,7 +10,7 @@ LDFLAGS = -lm
 all: ballAlg ballQuery
 
 ballAlg: ballAlg.c gen_points.o
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ -fopenmp ${LDFLAGS}
 
 gen_points.o: gen_points.c
 	$(CC) $(CFLAGS) -c $^
