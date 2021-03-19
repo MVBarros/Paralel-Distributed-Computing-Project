@@ -9,7 +9,7 @@ DBGFLAG = -D DEBUG
 # Flags for the linker
 LDFLAGS = -lm
 
-all: ballAlg ballQuery
+all: clean ballAlg ballQuery
 
 ballAlg: ballAlg.c gen_points.o orthogonal.o
 	$(CC) $(CFLAGS) -o $@ $^ -fopenmp ${LDFLAGS}

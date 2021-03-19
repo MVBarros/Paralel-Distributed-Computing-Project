@@ -1,5 +1,5 @@
-#ifndef GEN_POINTS_H
-#define GEN_POINTS_H
+#ifndef ORTHOGONAL_H
+#define ORTHOGONAL_H
 
 
 double distance(double* pt1, double* pt2);
