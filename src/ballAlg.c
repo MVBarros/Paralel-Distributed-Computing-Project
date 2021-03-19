@@ -3,7 +3,7 @@
 #include <omp.h>
 #include <math.h>
 #include "gen_points.h"
-#include "orthogonal.h"
+#include "point_operations.h"
 
 double** pts; // point list
 int n_dims; // number of dimensions of each point

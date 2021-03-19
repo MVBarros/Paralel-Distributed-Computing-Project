@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "gen_points.h"
-#include "orthogonal.h"
+#include "point_operations.h"
 
 extern int n_dims; // number of dimensions of each point
 

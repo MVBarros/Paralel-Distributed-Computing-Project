@@ -1,5 +1,5 @@
-#ifndef ORTHOGONAL_H
-#define ORTHOGONAL_H
+#ifndef POINT_OPERATIONS_H
+#define POINT_OPERATIONS_H
 
 double distance(double* pt1, double* pt2);
 
