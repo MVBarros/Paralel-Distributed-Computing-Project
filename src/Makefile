@@ -11,10 +11,13 @@ LDFLAGS = -lm
 
 all: ballAlg ballQuery
 
-ballAlg: ballAlg.c gen_points.o
+ballAlg: ballAlg.c gen_points.o orthogonal.o
 	$(CC) $(CFLAGS) -o $@ $^ -fopenmp ${LDFLAGS}
 
 gen_points.o: gen_points.c
+	$(CC) $(CFLAGS) -c $^
+
+orthogonal.o: orthogonal.c
 	$(CC) $(CFLAGS) -c $^
 
 ballQuery: ballQuery.c
