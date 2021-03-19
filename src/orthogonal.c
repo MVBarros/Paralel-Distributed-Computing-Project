@@ -4,10 +4,7 @@
 #include "gen_points.h"
 #include "orthogonal.h"
 
-extern double** pts; // point list
 extern int n_dims; // number of dimensions of each point
-extern long n_points; //number of points in the list
-extern int root;
 
 /*
 * Returns the squared distance between points pt1 and pt2
@@ -19,22 +16,6 @@ double distance(double* pt1, double* pt2)
     for(int i = 0; i < n_dims; i++)
         dist += (pt1[i] - pt2[i]) * (pt1[i] - pt2[i]);
     return dist; 
-}
-
-/*
-* Returns the point in pts furthest away from point p
-*/
-double* get_furthest_away_point(double* p, double** pts){
-    double max_distance = 0.0;
-    double* furthest_point = p;
-    for(long i = 0; i < n_points; i++){
-        double curr_distance = distance(p, pts[i]);
-        if(curr_distance > max_distance){
-            max_distance = curr_distance;
-            furthest_point = pts[i];
-        }        
-    }
-    return furthest_point;
 }
 
 /*
@@ -103,21 +84,4 @@ double* orthogonal_projection(double* a, double* b, double* p){
     double e = c/d;
     double* f = mul_scalar(basub,e);
     return sum_points(f, a);
-}
-
-
-int build_tree(){
-
-    double* a = get_furthest_away_point(pts[0], pts);
-
-    print_point(a);
-    
-    double* b = get_furthest_away_point(a, pts);
-
-    print_point(b);
-
-    for(long i = 0; i < n_points; i++){
-        print_point(orthogonal_projection(b, a, pts[i]));
-    }
-    return 0;
 }
