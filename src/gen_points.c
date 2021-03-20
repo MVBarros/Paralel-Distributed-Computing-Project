@@ -6,7 +6,7 @@
 
 extern void print_point(double *, int);
 
-static double **create_array_pts(int n_dims, long np)
+double **create_array_pts(int n_dims, long np)
 {
     double *_p_arr;
     double **p_arr;
