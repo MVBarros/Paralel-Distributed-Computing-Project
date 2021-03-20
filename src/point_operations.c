@@ -85,3 +85,14 @@ double* orthogonal_projection(double* a, double* b, double* p){
     double* f = mul_scalar(basub,e);
     return sum_points(f, a);
 }
+
+/*
+* Returns the middle of points a and b
+*/
+double* middle_points(double* a, double* b){
+    double* c = (double*) malloc(sizeof(double)*n_dims);
+    for(int i = 0; i < n_dims; i++){
+        c[i] = (a[i] + b[i]) / 2;
+    }
+    return c;
+}

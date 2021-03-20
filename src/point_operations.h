@@ -21,4 +21,7 @@ double* sub_points(double* a, double* b);
 //Returns the ortogonal projection of point p onto line ab
 double* orthogonal_projection(double* a, double* b, double* p);
 
+//Returns the middle of points a and b
+double* middle_points(double* a, double* b);
+
 #endif
