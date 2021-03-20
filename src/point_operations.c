@@ -23,7 +23,7 @@ double distance(double* pt1, double* pt2)
 */
 void print_point(double* p) {
     for(int i = 0; i < n_dims; i++){
-           printf("%.6f ", p[i]);
+        printf(" %.6f", p[i]);
     }
     printf("\n");
 }

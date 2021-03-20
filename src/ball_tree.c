@@ -30,9 +30,8 @@ void dump_tree(node_ptr node) {
         printf("%ld ", node->right->id);
     }
 
-    printf("%.6f ", node->radius);
+    printf("%.6f", node->radius);
     print_point(node->center);
-    printf("\n");
     dump_tree(node->left);
     dump_tree(node->right);
 }
