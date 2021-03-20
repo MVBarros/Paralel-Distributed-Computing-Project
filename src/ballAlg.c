@@ -4,9 +4,10 @@
 #include <math.h>
 #include "gen_points.h"
 #include "point_operations.h"
+#include "ball_tree.h"
 
 int n_dims; // number of dimensions of each point
-int root;
+node_ptr root;
 
 /*
 * Returns the point in pts furthest away from point p
@@ -24,7 +25,7 @@ double* get_furthest_away_point(double* p, double** pts, long n_points){
     return furthest_point;
 }
 
-int build_tree(double** pts, long n_points){
+node_ptr build_tree(double** pts, long n_points){
 
     double* a = get_furthest_away_point(pts[0], pts, n_points);
 
@@ -37,7 +38,7 @@ int build_tree(double** pts, long n_points){
     for(long i = 0; i < n_points; i++){
         print_point(orthogonal_projection(b, a, pts[i]));
     }
-    return 0;
+    return NULL;
 }
 
 int main(int argc, char** argv) {
@@ -48,6 +49,6 @@ int main(int argc, char** argv) {
     root = build_tree(pts, n_points);
     exec_time += omp_get_wtime();
     fprintf(stderr, "%.1lf\n", exec_time);
-    //dump_tree(root); 
+    dump_tree(root); 
 }
 

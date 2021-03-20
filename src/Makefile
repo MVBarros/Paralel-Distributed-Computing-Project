@@ -11,8 +11,11 @@ LDFLAGS = -lm
 
 all: clean ballAlg ballQuery
 
-ballAlg: ballAlg.c gen_points.o point_operations.o
+ballAlg: ballAlg.c gen_points.o point_operations.o ball_tree.o
 	$(CC) $(CFLAGS) -o $@ $^ -fopenmp ${LDFLAGS}
+
+ball_tree.o: ball_tree.c
+	$(CC) $(CFLAGS) -c $^
 
 gen_points.o: gen_points.c
 	$(CC) $(CFLAGS) -c $^
