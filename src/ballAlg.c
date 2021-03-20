@@ -25,6 +25,14 @@ double* get_furthest_away_point(double* p, double** pts, long n_points){
     return furthest_point;
 }
 
+double get_radius(double* median, double** pts, long n_points){
+
+    double* a = get_furthest_away_point(median, pts, n_points);
+
+    return sqrt(distance(a, median));
+
+}
+
 int compare_node(const void* pt1, const void* pt2) {
 
     double* dpt1 = *((double**) pt1);    
@@ -42,7 +50,6 @@ int compare_node(const void* pt1, const void* pt2) {
 }
 
 
-
 double* get_median(double** pts, long n_points) {
     // is even
     if(n_points % 2 == 0) {
@@ -57,6 +64,8 @@ double* get_median(double** pts, long n_points) {
         return pts[middle];
     }
 }
+
+
 
 node_ptr build_tree(double** pts, long n_points){
 
@@ -87,7 +96,9 @@ node_ptr build_tree(double** pts, long n_points){
     printf("The middle point is: ");
     print_point(middle);
 
-    return NULL;
+    double radius = get_radius(middle,pts,n_points);
+
+    return new_node(0,middle,radius);
 }
 
 int main(int argc, char** argv) {
