@@ -66,6 +66,25 @@ double* get_median(double** pts, long n_points) {
 }
 
 
+long rightside_size(long n_points){
+    if(n_points % 2 == 0){
+        return n_points / 2;
+    }else{
+        return (n_points + 1) / 2;
+    }
+}
+
+long leftside_size(long n_points){
+    if(n_points % 2 == 0){
+        return n_points / 2;
+    }else{
+        return (n_points - 1) / 2;
+    }
+}
+
+
+
+
 
 node_ptr build_tree(double** pts, long n_points){
 
@@ -97,6 +116,14 @@ node_ptr build_tree(double** pts, long n_points){
     print_point(middle);
 
     double radius = get_radius(middle,pts,n_points);
+
+    long right_size = rightside_size(n_points);
+
+    double **right = (double**) malloc(sizeof(double*) * right_size);
+
+    long left_size = leftside_size(n_points);
+
+    double **left = (double**) malloc(sizeof(double*) * left_size);
 
     return new_node(0,middle,radius);
 }
