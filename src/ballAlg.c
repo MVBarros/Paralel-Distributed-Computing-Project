@@ -9,7 +9,7 @@
 int n_dims; // number of dimensions of each point
 node_ptr root;
 
-double **pts, **ortho_array;
+double **pts, **ortho_array, **next_pts;
 long n_points;
 
 double *basub, *ortho_tmp;
@@ -106,13 +106,8 @@ node_ptr build_tree(){
 
     printf("The radius is: %f\n", radius);
     
-    long right_size = RIGHT_PARTITION_SIZE();
-
-    double **right = (double**) malloc(sizeof(double*) * right_size);
-
-    long left_size = LEFT_PARTITION_SIZE();
-
-    double **left = (double**) malloc(sizeof(double*) * left_size);
+    double **left = next_pts;
+    double **right = next_pts + LEFT_PARTITION_SIZE();
 
     return new_node(0, center, radius);
 }
@@ -121,6 +116,10 @@ void alloc_memory() {
     ortho_array = create_array_pts(n_dims, n_points);
     basub = (double*) malloc(sizeof(double) * n_dims);
     ortho_tmp = (double*) malloc(sizeof(double) * n_dims);
+    next_pts = (double**) malloc(sizeof(double*) * n_points);
+    for(long i = 0; i < n_points; i++) {
+        next_pts[i] = pts[i];
+    }
 }
 
 int main(int argc, char** argv) {
