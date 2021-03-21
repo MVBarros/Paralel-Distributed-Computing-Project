@@ -72,7 +72,7 @@ double* get_center() {
     }
     else { // is odd
         long middle = (n_points - 1) / 2;
-        return ortho_array[middle];
+        return copy_point(ortho_array[middle]); //copy since we will reuse ortho_array in future iterations of the algorithm
     }
 }
 

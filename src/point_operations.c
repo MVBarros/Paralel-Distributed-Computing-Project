@@ -42,7 +42,7 @@ void print_point_list(double** pt_list) {
 
 
 /*
-* Returns the multiplication of value b by point a
+* Puts in out multiplication of value b by point a
 */
 void mul_scalar(double* a, double b, double* out){
     for(int i = 0; i < n_dims; i++){
@@ -62,7 +62,7 @@ double dot_product(double* a, double* b){
 }
 
 /*
-* Returns the sum of points a and b
+* Puts in out the sum of points a and b
 */
 void sum_points(double* a, double* b, double* out){
     for(int i = 0; i < n_dims; i++){
@@ -71,7 +71,7 @@ void sum_points(double* a, double* b, double* out){
 }
 
 /*
-* Returns the difference of points a and b
+* Puts in out the difference of points a and b
 */
 void sub_points(double* a, double* b, double* out){
     for(int i = 0; i < n_dims; i++){
@@ -80,7 +80,18 @@ void sub_points(double* a, double* b, double* out){
 }
 
 /*
-* Returns the ortogonal projection of point p onto line ab
+* Returns a copy of point p
+*/
+double* copy_point(double* p) {
+    double* copy = malloc(sizeof(double) * n_dims);
+    for(int i = 0; i < n_dims; i++){
+        copy[i] = p[i];
+    }
+    return copy;
+}
+
+/*
+* Puts in out the ortogonal projection of point p onto line starting in a and defined by basub
 */
 void orthogonal_projection(double* basub, double* a , double* p, double* out){
     sub_points(p, a, ortho_tmp);
