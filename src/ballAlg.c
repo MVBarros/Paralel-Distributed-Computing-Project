@@ -9,7 +9,7 @@
 int n_dims; // number of dimensions of each point
 node_ptr root;
 
-double **pts, **ortho_array, **next_pts;
+double **pts, **ortho_array, **pts_aux;
 long n_points;
 
 double *basub, *ortho_tmp;
@@ -83,7 +83,27 @@ void calc_orthogonal_projections(double* a, double* b) {
     }
 }
 
+void build_leaf(double** left, double** right, double* center, double* a, double* b) {
+    long l = 0;
+    long r = 0;
+    calc_orthogonal_projections(a, b);
+    for(long i = 0; i < n_points; i++) {
+        if(ortho_array[i][0] < center[0]) {            
+            left[l] = pts[i];
+            l++;
+        }
+        else {
+            right[r] = pts[i];
+            r++;
+        }
+    }
+}
+
 node_ptr build_tree(){
+
+    if(n_points==1) {
+        return new_node(0, pts[0], 0);
+    }    
 
     double* a = get_furthest_away_point(pts[0]);
 
@@ -105,9 +125,25 @@ node_ptr build_tree(){
     print_point(center);
 
     printf("The radius is: %f\n", radius);
-    
-    double **left = next_pts;
-    double **right = next_pts + LEFT_PARTITION_SIZE();
+
+    long n_points_left = LEFT_PARTITION_SIZE();
+    long n_points_right = RIGHT_PARTITION_SIZE();
+
+    double **left = pts_aux;
+    double **right = pts_aux + n_points_left;
+
+    build_leaf(left, right, center, a, b);
+
+    pts_aux = pts;
+    double** pts_tmp = pts_aux;
+    pts = left;    
+    n_points = n_points_left;
+    build_tree();
+
+    pts_aux = pts_tmp;
+    pts = right;    
+    n_points = n_points_right;
+    build_tree();
 
     return new_node(0, center, radius);
 }
@@ -116,9 +152,9 @@ void alloc_memory() {
     ortho_array = create_array_pts(n_dims, n_points);
     basub = (double*) malloc(sizeof(double) * n_dims);
     ortho_tmp = (double*) malloc(sizeof(double) * n_dims);
-    next_pts = (double**) malloc(sizeof(double*) * n_points);
+    pts_aux = (double**) malloc(sizeof(double*) * n_points);
     for(long i = 0; i < n_points; i++) {
-        next_pts[i] = pts[i];
+        pts_aux[i] = pts[i];
     }
 }
 
@@ -132,4 +168,3 @@ int main(int argc, char** argv) {
     fprintf(stderr, "%.8lf\n", exec_time);
     dump_tree(root); 
 }
-
