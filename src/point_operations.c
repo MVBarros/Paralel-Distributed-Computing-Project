@@ -5,6 +5,9 @@
 #include "point_operations.h"
 
 extern int n_dims; // number of dimensions of each point
+extern int n_points;
+
+extern double* ortho_tmp;
 
 /*
 * Returns the squared distance between points pt1 and pt2
@@ -29,15 +32,22 @@ void print_point(double* p) {
 }
 
 /*
+* Print point list pt_list to stdout
+*/
+void print_point_list(double** pt_list) {
+    for (long i = 0; i < n_points; i++) {
+        print_point(pt_list[i]);
+    }
+}
+
+
+/*
 * Returns the multiplication of value b by point a
 */
-double* mul_scalar(double* a, double b){
-
-    double* c = (double*) malloc(sizeof(double)*n_dims);
+void mul_scalar(double* a, double b, double* out){
     for(int i = 0; i < n_dims; i++){
-        c[i] = a[i] * b;
+        out[i] = a[i] * b;
     }
-    return c;
 }
 
 /*
@@ -54,42 +64,37 @@ double dot_product(double* a, double* b){
 /*
 * Returns the sum of points a and b
 */
-double* sum_points(double* a, double* b){
-    double* c = (double*) malloc(sizeof(double)*n_dims);
+void sum_points(double* a, double* b, double* out){
     for(int i = 0; i < n_dims; i++){
-        c[i] = a[i] + b[i];
+        out[i] = a[i] + b[i];
     }
-    return c;
 }
 
 /*
 * Returns the difference of points a and b
 */
-double* sub_points(double* a, double* b){
-    double* c = (double*) malloc(sizeof(double)*n_dims);
+void sub_points(double* a, double* b, double* out){
     for(int i = 0; i < n_dims; i++){
-        c[i] = a[i] - b[i];
+        out[i] = a[i] - b[i];
     }
-    return c;
 }
 
 /*
 * Returns the ortogonal projection of point p onto line ab
 */
-double* orthogonal_projection(double* a, double* b, double* p){
-    double* basub = sub_points(b, a);
-    double* pasub = sub_points(p, a);
-    double c = dot_product(pasub,basub);
+void orthogonal_projection(double* basub, double* a , double* p, double* out){
+    sub_points(p, a, ortho_tmp);
+    double c = dot_product(ortho_tmp,basub);
     double d = dot_product(basub,basub);
     double e = c/d;
-    double* f = mul_scalar(basub,e);
-    return sum_points(f, a);
+    mul_scalar(basub,e, ortho_tmp);
+    sum_points(ortho_tmp, a, out);
 }
 
 /*
 * Returns the middle of points a and b
 */
-double* middle_points(double* a, double* b){
+double* middle_point(double* a, double* b){
     double* c = (double*) malloc(sizeof(double)*n_dims);
     for(int i = 0; i < n_dims; i++){
         c[i] = (a[i] + b[i]) / 2;

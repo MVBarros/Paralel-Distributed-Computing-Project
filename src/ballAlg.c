@@ -9,10 +9,19 @@
 int n_dims; // number of dimensions of each point
 node_ptr root;
 
+double **pts, **ortho_array;
+long n_points;
+
+double *basub, *ortho_tmp;
+
+#define RIGHT_PARTITION_SIZE() n_points % 2 ? (n_points + 1) % 2 : n_points % 2
+#define LEFT_PARTITION_SIZE() n_points % 2 ? (n_points - 1) % 2 : n_points % 2
+
+
 /*
 * Returns the point in pts furthest away from point p
 */
-double* get_furthest_away_point(double* p, double** pts, long n_points){
+double* get_furthest_away_point(double* p){
     double max_distance = 0.0;
     double* furthest_point = p;
     for(long i = 0; i < n_points; i++){
@@ -25,11 +34,11 @@ double* get_furthest_away_point(double* p, double** pts, long n_points){
     return furthest_point;
 }
 
-double get_radius(double* median, double** pts, long n_points){
+double get_radius(double* center){
 
-    double* a = get_furthest_away_point(median, pts, n_points);
+    double* a = get_furthest_away_point(center);
 
-    return sqrt(distance(a, median));
+    return sqrt(distance(a, center));
 
 }
 
@@ -41,99 +50,85 @@ int compare_node(const void* pt1, const void* pt2) {
     if(dpt1[0] > dpt2[0]) {
         return 1;
     }
-    else if(dpt1[0] == dpt2[0]) {
-        return 0;
+    else if(dpt1[0] < dpt2[0]) {
+        return -1;
     }
     else {
-        return -1;
+        return 0;
     }    
 }
 
+double* get_center() {
+    qsort(ortho_array, n_points, sizeof(double*), compare_node);
 
-double* get_median(double** pts, long n_points) {
-    // is even
-    if(n_points % 2 == 0) {
+    printf("Sorted ortogonal projections:\n");
+    print_point_list(ortho_array);
+
+    if(n_points % 2 == 0) { // is even
         long middle_1 = (n_points / 2) - 1;
         long middle_2 = (n_points / 2);
         
-        return middle_points(pts[middle_1], pts[middle_2]);        
+        return middle_point(ortho_array[middle_1], ortho_array[middle_2]);        
     }
-    // is odd
-    else {
+    else { // is odd
         long middle = (n_points - 1) / 2;
-        return pts[middle];
+        return ortho_array[middle];
     }
 }
 
-
-long rightside_size(long n_points){
-    if(n_points % 2 == 0){
-        return n_points / 2;
-    }else{
-        return (n_points + 1) / 2;
+void calc_orthogonal_projections(double* a, double* b) {
+    sub_points(b, a, basub);
+    for(long i = 0; i < n_points; i++){
+        orthogonal_projection(basub, a, pts[i], ortho_array[i]);
     }
 }
 
-long leftside_size(long n_points){
-    if(n_points % 2 == 0){
-        return n_points / 2;
-    }else{
-        return (n_points - 1) / 2;
-    }
-}
+node_ptr build_tree(){
 
-
-
-
-
-node_ptr build_tree(double** pts, long n_points){
-
-    double* a = get_furthest_away_point(pts[0], pts, n_points);
+    double* a = get_furthest_away_point(pts[0]);
 
     print_point(a);
     
-    double* b = get_furthest_away_point(a, pts, n_points);
+    double* b = get_furthest_away_point(a);
 
     print_point(b);
 
-    double** ortho_array = (double**) malloc(sizeof(double*) * n_points);
+    calc_orthogonal_projections(a, b);
+    
+    printf("Ortogonal projections:\n");
+    print_point_list(ortho_array);
 
-    printf("Projeccao ortogonal dos pontos:\n");
-    for(long i = 0; i < n_points; i++){
-        ortho_array[i] = orthogonal_projection(b, a, pts[i]);
-        print_point(ortho_array[i]);
-    }
-    qsort(ortho_array, n_points, sizeof(double*), compare_node);
+    double* center = get_center();
+    double radius = get_radius(center);
 
-    printf("Pontos apos ordenacao:\n");
-    for(long i = 0; i < n_points; i++) {
-        print_point(ortho_array[i]);
-    }
+    printf("The center is: ");
+    print_point(center);
 
-    double* middle = get_median(ortho_array, n_points);
-
-    printf("The middle point is: ");
-    print_point(middle);
-
-    double radius = get_radius(middle,pts,n_points);
-
-    long right_size = rightside_size(n_points);
+    printf("The radius is: %f\n", radius);
+    
+    long right_size = RIGHT_PARTITION_SIZE();
 
     double **right = (double**) malloc(sizeof(double*) * right_size);
 
-    long left_size = leftside_size(n_points);
+    long left_size = LEFT_PARTITION_SIZE();
 
     double **left = (double**) malloc(sizeof(double*) * left_size);
 
-    return new_node(0,middle,radius);
+    return new_node(0, center, radius);
+}
+
+void alloc_memory() {
+    ortho_array = create_array_pts(n_dims, n_points);
+    basub = (double*) malloc(sizeof(double) * n_dims);
+    ortho_tmp = (double*) malloc(sizeof(double) * n_dims);
 }
 
 int main(int argc, char** argv) {
     double exec_time;
-    long n_points;
     exec_time = -omp_get_wtime();
-    double **pts = get_points(argc, argv, &n_dims, &n_points);
-    root = build_tree(pts, n_points);
+    pts = get_points(argc, argv, &n_dims, &n_points);
+    alloc_memory();
+    root = build_tree();
     exec_time += omp_get_wtime();
     fprintf(stderr, "%.8lf\n", exec_time);
     dump_tree(root); 
