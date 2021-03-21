@@ -11,11 +11,26 @@ node_ptr root;
 
 double **pts, **ortho_array, **pts_aux;
 long n_points;
+long node_id;
 
 double *basub, *ortho_tmp;
 
-#define RIGHT_PARTITION_SIZE() n_points % 2 ? (n_points + 1) % 2 : n_points % 2
-#define LEFT_PARTITION_SIZE() n_points % 2 ? (n_points - 1) % 2 : n_points % 2
+
+long right_partition_size(){
+    if(n_points % 2 == 0){
+        return n_points / 2;
+    }else{
+        return (n_points + 1) / 2;
+    }
+}
+
+long left_partition_size(){
+    if(n_points % 2 == 0){
+        return n_points / 2;
+    }else{
+        return (n_points - 1) / 2;
+    }
+}
 
 
 /*
@@ -101,7 +116,7 @@ void build_leaf(double** left, double** right, double* center, double* a, double
 
 node_ptr build_tree(){
     if(n_points==1) {
-        return new_node(0, pts[0], 0);
+        return new_node(node_id, pts[0], 0);
     }    
     print_point_list(pts);
     printf("\n");
@@ -127,11 +142,11 @@ node_ptr build_tree(){
 
     printf("The radius is: %f\n", radius);
 
-    long n_points_left = LEFT_PARTITION_SIZE();
-    printf("n_points:")
+    long n_points_left = left_partition_size();
+    printf("n_points: %ld\n", n_points);
     printf("n_points_left: %ld\n\n", n_points_left);
     
-    long n_points_right = RIGHT_PARTITION_SIZE();
+    long n_points_right = right_partition_size();
 
     double **left = pts_aux;
     double **right = pts_aux + n_points_left;
@@ -142,14 +157,22 @@ node_ptr build_tree(){
     double** pts_tmp = pts_aux;
     pts = left;    
     n_points = n_points_left;
-    build_tree();
+    long curr_id = node_id;
+    node_id++;
+    node_ptr left_node = build_tree();
 
     pts_aux = pts_tmp;
     pts = right;    
     n_points = n_points_right;
-    build_tree();
+    node_id++;
+    node_ptr right_node = build_tree();
 
-    return new_node(0, center, radius);
+    node_ptr node = new_node(curr_id, center, radius);
+    
+    node->left = left_node;
+    node->right = right_node;
+
+    return node;
 }
 
 void alloc_memory() {
@@ -170,5 +193,6 @@ int main(int argc, char** argv) {
     root = build_tree();
     exec_time += omp_get_wtime();
     fprintf(stderr, "%.8lf\n", exec_time);
+    printf("%d %ld\n", n_dims, node_id+1);
     dump_tree(root); 
 }
