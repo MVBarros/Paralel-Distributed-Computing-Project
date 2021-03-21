@@ -100,10 +100,11 @@ void build_leaf(double** left, double** right, double* center, double* a, double
 }
 
 node_ptr build_tree(){
-
     if(n_points==1) {
         return new_node(0, pts[0], 0);
     }    
+    print_point_list(pts);
+    printf("\n");
 
     double* a = get_furthest_away_point(pts[0]);
 
@@ -127,6 +128,9 @@ node_ptr build_tree(){
     printf("The radius is: %f\n", radius);
 
     long n_points_left = LEFT_PARTITION_SIZE();
+    printf("n_points:")
+    printf("n_points_left: %ld\n\n", n_points_left);
+    
     long n_points_right = RIGHT_PARTITION_SIZE();
 
     double **left = pts_aux;
