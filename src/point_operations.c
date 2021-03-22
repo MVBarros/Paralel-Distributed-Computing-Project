@@ -82,12 +82,10 @@ void sub_points(double* a, double* b, double* out){
 /*
 * Returns a copy of point p
 */
-double* copy_point(double* p) {
-    double* copy = malloc(sizeof(double) * n_dims);
+void copy_point(double* p, double* copy) {
     for(int i = 0; i < n_dims; i++){
         copy[i] = p[i];
     }
-    return copy;
 }
 
 /*
@@ -105,10 +103,8 @@ void orthogonal_projection(double* basub, double* a , double* p, double* out){
 /*
 * Returns the middle of points a and b
 */
-double* middle_point(double* a, double* b){
-    double* c = (double*) malloc(sizeof(double)*n_dims);
+void middle_point(double* a, double* b, double* out){
     for(int i = 0; i < n_dims; i++){
-        c[i] = (a[i] + b[i]) / 2;
+        out[i] = (a[i] + b[i]) / 2;
     }
-    return c;
 }

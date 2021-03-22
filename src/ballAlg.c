@@ -16,6 +16,7 @@ long node_id;
 double *basub, *ortho_tmp;
 
 node_ptr node_list;
+double** node_centers;
 long n_nodes;
 
 
@@ -83,12 +84,13 @@ double* get_center() {
         long middle_1 = (n_points / 2) - 1;
         long middle_2 = (n_points / 2);
         
-        return middle_point(ortho_array[middle_1], ortho_array[middle_2]);        
+        middle_point(ortho_array[middle_1], ortho_array[middle_2], node_centers[node_id]);        
     }
     else { // is odd
         long middle = (n_points - 1) / 2;
-        return copy_point(ortho_array[middle]); //copy since we will reuse ortho_array in future iterations of the algorithm
+        copy_point(ortho_array[middle], node_centers[node_id]);
     }
+    return node_centers[node_id];
 }
 
 void calc_orthogonal_projections(double* a, double* b) {
@@ -165,6 +167,7 @@ void alloc_memory() {
     ortho_tmp = (double*) malloc(sizeof(double) * n_dims);
     pts_aux = (double**) malloc(sizeof(double*) * n_points);
     node_list = (node_ptr) malloc(sizeof(node_t) * n_nodes);
+    node_centers = create_array_pts(n_dims, n_nodes);
 }
 
 void dump_tree() {

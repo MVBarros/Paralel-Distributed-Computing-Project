@@ -25,9 +25,9 @@ void sub_points(double* a, double* b, double* out);
 void orthogonal_projection(double* basub, double* b, double* p, double* out);
 
 //Returns the middle of points a and b
-double* middle_point(double* a, double* b);
+void middle_point(double* a, double* b, double* out);
 
 //Returns a copy of point p
-double* copy_point(double* p);
+void copy_point(double* p, double* out);
 
 #endif
