@@ -98,7 +98,7 @@ void calc_orthogonal_projections(double* a, double* b) {
     }
 }
 
-void build_leaf(double** left, double** right, double* center, double* a, double* b) {
+void fill_partitions(double** left, double** right, double* center, double* a, double* b) {
     long l = 0;
     long r = 0;
     calc_orthogonal_projections(a, b);
@@ -119,7 +119,6 @@ node_ptr build_tree(){
         return make_node(node_id, pts[0], 0, &node_list[node_id]);
     }    
 
-
     double* a = get_furthest_away_point(pts[0]);
     double* b = get_furthest_away_point(a);
 
@@ -129,27 +128,25 @@ node_ptr build_tree(){
     double radius = get_radius(center);
 
     long n_points_left = left_partition_size();
-    
     long n_points_right = right_partition_size();
 
     double **left = pts_aux;
     double **right = pts_aux + n_points_left;
 
-    build_leaf(left, right, center, a, b);
+    fill_partitions(left, right, center, a, b);
 
     node_ptr node = make_node(node_id, center, radius, &node_list[node_id]);
 
-    double **pts_left = left, **pts_aux_left = pts;
-    double **pts_right = right, **pts_aux_right = pts;
+    double **child_pts_aux = pts;
 
-    pts = pts_left;
-    pts_aux = pts_aux_left;    
+    pts = left;
+    pts_aux = child_pts_aux;    
     n_points = n_points_left;
     node_id++;
     node_ptr left_node = build_tree();
 
-    pts = pts_right;
-    pts_aux = pts_aux_right;    
+    pts = right;
+    pts_aux = child_pts_aux;    
     n_points = n_points_right;
     node_id++;
     node_ptr right_node = build_tree();
