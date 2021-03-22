@@ -79,9 +79,6 @@ int compare_node(const void* pt1, const void* pt2) {
 double* get_center() {
     qsort(ortho_array, n_points, sizeof(double*), compare_node);
 
-    printf("Sorted ortogonal projections:\n");
-    print_point_list(ortho_array);
-
     if(n_points % 2 == 0) { // is even
         long middle_1 = (n_points / 2) - 1;
         long middle_2 = (n_points / 2);
@@ -121,33 +118,17 @@ node_ptr build_tree(){
     if(n_points==1) {
         return make_node(node_id, pts[0], 0, &node_list[node_id]);
     }    
-    print_point_list(pts);
-    printf("\n");
+
 
     double* a = get_furthest_away_point(pts[0]);
-
-    print_point(a);
-    
     double* b = get_furthest_away_point(a);
 
-    print_point(b);
-
     calc_orthogonal_projections(a, b);
-    
-    printf("Ortogonal projections:\n");
-    print_point_list(ortho_array);
 
     double* center = get_center();
     double radius = get_radius(center);
 
-    printf("The center is: ");
-    print_point(center);
-
-    printf("The radius is: %f\n", radius);
-
     long n_points_left = left_partition_size();
-    printf("n_points: %ld\n", n_points);
-    printf("n_points_left: %ld\n\n", n_points_left);
     
     long n_points_right = right_partition_size();
 
@@ -156,24 +137,26 @@ node_ptr build_tree(){
 
     build_leaf(left, right, center, a, b);
 
-    pts_aux = pts;
-    double** pts_tmp = pts_aux;
-    pts = left;    
+    node_ptr node = make_node(node_id, center, radius, &node_list[node_id]);
+
+    double **pts_left = left, **pts_aux_left = pts;
+    double **pts_right = right, **pts_aux_right = pts;
+
+    pts = pts_left;
+    pts_aux = pts_aux_left;    
     n_points = n_points_left;
-    long curr_id = node_id;
     node_id++;
     node_ptr left_node = build_tree();
 
-    pts_aux = pts_tmp;
-    pts = right;    
+    pts = pts_right;
+    pts_aux = pts_aux_right;    
     n_points = n_points_right;
     node_id++;
     node_ptr right_node = build_tree();
 
-    node_ptr node = make_node(curr_id, center, radius, &node_list[curr_id]);
     
-    node->left = left_node;
-    node->right = right_node;
+    node->left_id = left_node->id;
+    node->right_id = right_node->id;
 
     return node;
 }
@@ -201,6 +184,6 @@ int main(int argc, char** argv) {
     root = build_tree();
     exec_time += omp_get_wtime();
     fprintf(stderr, "%.8lf\n", exec_time);
-    printf("%d %ld\n", n_dims, node_id+1);
+    printf("%d %ld\n", n_dims, n_nodes);
     dump_tree(root); 
 }

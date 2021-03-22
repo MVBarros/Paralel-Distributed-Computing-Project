@@ -5,8 +5,8 @@ struct tree_node {
     long id;
     double radius;
     double* center;
-    struct tree_node *left;
-    struct tree_node *right;
+    long left_id;
+    long right_id;
 };
 
 typedef struct tree_node node_t;

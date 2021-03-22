@@ -7,28 +7,14 @@ node_ptr make_node(long id, double* center, double radius, node_ptr new_node) {
     new_node->radius = radius;
     new_node->center = center;
     new_node->id = id;
-    new_node->left = NULL;
-    new_node-> right = NULL;
+    new_node->left_id = -1;
+    new_node->right_id = -1;
     return new_node;
 }
 
 void print_node(node_ptr node) {
-    if (node == NULL) {
-        return;
-    }
-    printf("%ld ", node->id);
-    if (node->left == NULL) {
-        printf("-1 ");
-    } else {
-        printf("%ld ", node->left->id);
-    }
 
-    if (node->right == NULL ) {
-        printf("-1 ");
-    } else {
-        printf("%ld ", node->right->id);
-    }
+    printf("%ld %ld %ld %.6f", node->id, node->left_id, node->right_id, node->radius);
 
-    printf("%.6f", node->radius);
     print_point(node->center);
 }
