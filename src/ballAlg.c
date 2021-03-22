@@ -7,17 +7,21 @@
 #include "ball_tree.h"
 
 int n_dims; // number of dimensions of each point
-node_ptr root;
 
-double **pts, **ortho_array, **pts_aux;
-long n_points;
-long node_id;
+double  **pts, // list of points of the current iteration of the algorithm
+        **ortho_array, // list of ortogonal projections of the points in pts
+        **pts_aux; // list of points of the next iteration of the algorithm
 
-double *basub, *ortho_tmp;
 
-node_ptr node_list;
-double** node_centers;
-long n_nodes;
+long n_points; // total number of points in the dataset
+long node_id; // id of the current node of the algorithm
+
+double  *basub, // point containing b-a for the 2nd set of the algorithm 
+        *ortho_tmp; // temporary pointer used for calculation the orthogonal projection
+
+node_ptr node_list; // list of nodes of the ball tree
+double** node_centers; // list of centers of ball tree nodes
+long n_nodes; // number of nodes in the ball tree
 
 
 long right_partition_size(){
@@ -181,9 +185,9 @@ int main(int argc, char** argv) {
     exec_time = -omp_get_wtime();
     pts = get_points(argc, argv, &n_dims, &n_points);
     alloc_memory();
-    root = build_tree();
+    build_tree();
     exec_time += omp_get_wtime();
-    fprintf(stderr, "%.8lf\n", exec_time);
+    fprintf(stderr, "%.2lf\n", exec_time);
     printf("%d %ld\n", n_dims, n_nodes);
-    dump_tree(root); 
+    dump_tree(); 
 }
