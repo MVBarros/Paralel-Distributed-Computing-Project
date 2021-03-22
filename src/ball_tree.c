@@ -3,8 +3,7 @@
 #include "ball_tree.h"
 #include "point_operations.h"
 
-node_ptr new_node(long id, double* center, double radius) {
-    node_ptr new_node = (node_ptr) malloc(sizeof(node_t));
+node_ptr make_node(long id, double* center, double radius, node_ptr new_node) {
     new_node->radius = radius;
     new_node->center = center;
     new_node->id = id;
@@ -13,7 +12,7 @@ node_ptr new_node(long id, double* center, double radius) {
     return new_node;
 }
 
-void dump_tree(node_ptr node) {
+void print_node(node_ptr node) {
     if (node == NULL) {
         return;
     }
@@ -32,6 +31,4 @@ void dump_tree(node_ptr node) {
 
     printf("%.6f", node->radius);
     print_point(node->center);
-    dump_tree(node->left);
-    dump_tree(node->right);
 }

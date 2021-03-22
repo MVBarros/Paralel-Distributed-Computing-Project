@@ -12,7 +12,7 @@ struct tree_node {
 typedef struct tree_node node_t;
 typedef struct tree_node *node_ptr;
 
-node_ptr new_node(long id, double* center, double radius);
-void dump_tree(node_ptr node);
+node_ptr make_node(long id, double* center, double radius, node_ptr new_node);
+void print_node(node_ptr node);
 
 #endif

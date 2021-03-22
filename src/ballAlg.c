@@ -15,6 +15,9 @@ long node_id;
 
 double *basub, *ortho_tmp;
 
+node_ptr node_list;
+long n_nodes;
+
 
 long right_partition_size(){
     if(n_points % 2 == 0){
@@ -116,7 +119,7 @@ void build_leaf(double** left, double** right, double* center, double* a, double
 
 node_ptr build_tree(){
     if(n_points==1) {
-        return new_node(node_id, pts[0], 0);
+        return make_node(node_id, pts[0], 0, &node_list[node_id]);
     }    
     print_point_list(pts);
     printf("\n");
@@ -167,7 +170,7 @@ node_ptr build_tree(){
     node_id++;
     node_ptr right_node = build_tree();
 
-    node_ptr node = new_node(curr_id, center, radius);
+    node_ptr node = make_node(curr_id, center, radius, &node_list[curr_id]);
     
     node->left = left_node;
     node->right = right_node;
@@ -176,12 +179,17 @@ node_ptr build_tree(){
 }
 
 void alloc_memory() {
+    n_nodes = (n_points * 2) - 1;
     ortho_array = create_array_pts(n_dims, n_points);
     basub = (double*) malloc(sizeof(double) * n_dims);
     ortho_tmp = (double*) malloc(sizeof(double) * n_dims);
     pts_aux = (double**) malloc(sizeof(double*) * n_points);
-    for(long i = 0; i < n_points; i++) {
-        pts_aux[i] = pts[i];
+    node_list = (node_ptr) malloc(sizeof(node_t) * n_nodes);
+}
+
+void dump_tree() {
+    for (long i = 0; i < n_nodes; i++) {
+        print_node(&node_list[i]);
     }
 }
 
