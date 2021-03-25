@@ -81,7 +81,7 @@ int compare_node(const void* pt1, const void* pt2) {
     }    
 }
 
-double* get_center() {
+double* get_center(long node_id) {
     qsort(ortho_array, n_points, sizeof(double*), compare_node);
 
     if(n_points % 2 == 0) { // is even
@@ -130,7 +130,7 @@ node_ptr build_tree(){
 
     calc_orthogonal_projections(a, b);
 
-    double* center = get_center();
+    double* center = get_center(node_id);
     double radius = get_radius(center);
 
     long n_points_left = left_partition_size();
@@ -152,7 +152,7 @@ node_ptr build_tree(){
     node_ptr left_node = build_tree();
 
     pts = right;
-    pts_aux = child_pts_aux;    
+    pts_aux = child_pts_aux + n_points_left;    
     n_points = n_points_right;
     node_id++;
     node_ptr right_node = build_tree();
