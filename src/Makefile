@@ -2,14 +2,14 @@
 CC = gcc
 
 # Flags for the compiler
-CFLAGS = -O3 -Wall -std=gnu99
+CFLAGS = -O3 -Wall
 
 DBGFLAG = -D DEBUG
 
 # Flags for the linker
 LDFLAGS = -lm
 
-all: clean ballAlg ballQuery
+all: ballAlg ballQuery
 
 ballAlg: ballAlg.c gen_points.o point_operations.o ball_tree.o
 	$(CC) $(CFLAGS) -o $@ $^ -fopenmp ${LDFLAGS}
