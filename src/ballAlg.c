@@ -120,12 +120,22 @@ void fill_partitions(double** left, double** right, double* center, double* a, d
     }
 }
 
+double* first_point() {
+    double* min = pts[0];
+    for(long i = 0; i < n_points; i++) {
+        if (min > pts[i]) {
+            min = pts[i];
+        }
+    } 
+    return min;
+}
+
 node_ptr build_tree(){
     if(n_points==1) {
         return make_node(node_id, pts[0], 0, &node_list[node_id]);
     }    
 
-    double* a = get_furthest_away_point(pts[0]);
+    double* a = get_furthest_away_point(first_point());
     double* b = get_furthest_away_point(a);
 
     calc_orthogonal_projections(a, b);
