@@ -10,6 +10,7 @@ int n_dims; // number of dimensions of each point
 
 double  **pts, // list of points of the current iteration of the algorithm
         **ortho_array, // list of ortogonal projections of the points in pts
+        **ortho_array_srt, //list of ortogonal projections of the point in pts to be sorted.
         **pts_aux; // list of points of the next iteration of the algorithm
 
 
@@ -81,18 +82,25 @@ int compare_node(const void* pt1, const void* pt2) {
     }    
 }
 
+void copy_projections() {
+    for(long i = 0; i < n_points; i++) {
+        ortho_array_srt[i] = ortho_array[i];
+    }
+}
+
 double* get_center(long node_id) {
-    qsort(ortho_array, n_points, sizeof(double*), compare_node);
+    copy_projections();
+    qsort(ortho_array_srt, n_points, sizeof(double*), compare_node);
 
     if(n_points % 2 == 0) { // is even
         long middle_1 = (n_points / 2) - 1;
         long middle_2 = (n_points / 2);
         
-        middle_point(ortho_array[middle_1], ortho_array[middle_2], node_centers[node_id]);        
+        middle_point(ortho_array_srt[middle_1], ortho_array_srt[middle_2], node_centers[node_id]);        
     }
     else { // is odd
         long middle = (n_points - 1) / 2;
-        copy_point(ortho_array[middle], node_centers[node_id]);
+        copy_point(ortho_array_srt[middle], node_centers[node_id]);
     }
     return node_centers[node_id];
 }
@@ -107,7 +115,6 @@ void calc_orthogonal_projections(double* a, double* b) {
 void fill_partitions(double** left, double** right, double* center, double* a, double* b) {
     long l = 0;
     long r = 0;
-    calc_orthogonal_projections(a, b);
     for(long i = 0; i < n_points; i++) {
         if(ortho_array[i][0] < center[0]) {            
             left[l] = pts[i];
@@ -177,6 +184,7 @@ node_ptr build_tree(){
 void alloc_memory() {
     n_nodes = (n_points * 2) - 1;
     ortho_array = create_array_pts(n_dims, n_points);
+    ortho_array_srt = (double**) malloc(sizeof(double) * n_points);
     basub = (double*) malloc(sizeof(double) * n_dims);
     ortho_tmp = (double*) malloc(sizeof(double) * n_dims);
     pts_aux = (double**) malloc(sizeof(double*) * n_points);
