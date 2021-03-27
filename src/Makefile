@@ -26,8 +26,12 @@ point_operations.o: point_operations.c
 ballQuery: ballQuery.c
 	$(CC) $(CFLAGS) -o $@ $^ ${LDFLAGS}
 
-# The phony target "clean" is used to remove all compiled object files.
 .PHONY: clean
 clean: 
 	@rm -f ballAlg ballQuery
 	@rm -f *.o
+
+.PHONY: zip
+
+zip: Makefile *.c *.h 
+	zip src.zip $^
