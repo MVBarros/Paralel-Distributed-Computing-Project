@@ -34,4 +34,4 @@ clean:
 .PHONY: zip
 
 zip: Makefile *.c *.h 
-	zip src.zip $^
+	@zip src.zip $^
