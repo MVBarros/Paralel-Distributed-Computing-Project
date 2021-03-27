@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <omp.h>
 #include <math.h>
+#include <string.h>
 #include "gen_points.h"
 #include "point_operations.h"
 #include "ball_tree.h"
@@ -82,14 +83,9 @@ int compare_node(const void* pt1, const void* pt2) {
     }    
 }
 
-void copy_projections() {
-    for(long i = 0; i < n_points; i++) {
-        ortho_array_srt[i] = ortho_array[i];
-    }
-}
 
 double* get_center(long node_id) {
-    copy_projections();
+    memcpy(ortho_array_srt, ortho_array, sizeof(double*) * n_points);
     qsort(ortho_array_srt, n_points, sizeof(double*), compare_node);
 
     if(n_points % 2 == 0) { // is even
