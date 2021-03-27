@@ -112,7 +112,7 @@ void calc_orthogonal_projections(double* a, double* b) {
     }
 }
 
-void fill_partitions(double** left, double** right, double* center, double* a, double* b) {
+void fill_partitions(double** left, double** right, double* center) {
     long l = 0;
     long r = 0;
     for(long i = 0; i < n_points; i++) {
@@ -156,7 +156,7 @@ node_ptr build_tree(){
     double **left = pts_aux;
     double **right = pts_aux + n_points_left;
 
-    fill_partitions(left, right, center, a, b);
+    fill_partitions(left, right, center);
 
     node_ptr node = make_node(node_id, center, radius, &node_list[node_id]);
 
