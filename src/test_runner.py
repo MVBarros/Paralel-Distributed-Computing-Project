@@ -33,6 +33,10 @@ null_file = open('/dev/null', 'w')
 
 subprocess.run('make', stdout=null_file)
 
+subprocess.run(['rm', '-rf', 'trees'], stdout=null_file)
+
+subprocess.run(['mkdir', 'trees'], stdout=null_file)
+
 for args, out in zip(alg_args, tree_files):
     arg_list = args.split(' ')
     with open(out, 'w+') as f:
