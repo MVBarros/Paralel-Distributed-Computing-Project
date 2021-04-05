@@ -35,6 +35,5 @@ clean:
 	@rm -f *.o
 
 .PHONY: zip
-
 zip: Makefile *.c *.h 
 	@zip g29omp.zip $^
