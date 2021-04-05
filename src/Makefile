@@ -4,8 +4,6 @@ CC = gcc
 # Flags for the compiler
 CFLAGS = -O3 -Wall -std=gnu99
 
-DBGFLAG = -D DEBUG
-
 # Flags for the linker
 LDFLAGS = -lm
 
