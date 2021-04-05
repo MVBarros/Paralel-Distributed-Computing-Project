@@ -1,4 +1,13 @@
+#!/bin/python3
 import subprocess
+import sys
+import os
+
+if len(sys.argv) < 2:
+    print("Usage: test_runner.py <executable>")
+    exit(1)
+
+executable = "./" + str(sys.argv[1])
 
 alg_args = ['2 5 0',
             '2 8 0',
@@ -8,8 +17,6 @@ alg_args = ['2 5 0',
             '3 20000000 0',
             '4 20000000 0'
             ]
-
-tree_files = ['./trees/ex-' + arg.replace(' ', '-') + '.tree' for arg in alg_args] 
 
 query_args = ['3 1',
               '8 8',
@@ -29,27 +36,27 @@ query_outputs = ['2.777747 5.539700',
                 '7.939939 5.934679 3.951869 1.930474'
                 ]
 
+tree_files = ['./trees/ex-' + arg.replace(' ', '-') + '.tree' for arg in alg_args] 
+
+alg_args = [arg.split(' ') for arg in alg_args]
+
+query_args = [[tree, *arg.split(' ')] for tree, arg in zip(tree_files, query_args)]
+
 null_file = open('/dev/null', 'w')
 
-subprocess.run('make', stdout=null_file)
+if not os.path.exists('trees'):
+    os.makedirs('trees')
 
-subprocess.run(['rm', '-rf', 'trees'], stdout=null_file)
+for args, tree_file in zip(alg_args, tree_files):
+    with open(tree_file, 'w+') as tree_fd:
+        subprocess.run([executable, *args], stdout=tree_fd, stderr=null_file)
 
-subprocess.run(['mkdir', 'trees'], stdout=null_file)
-
-for args, out in zip(alg_args, tree_files):
-    arg_list = args.split(' ')
-    with open(out, 'w+') as f:
-        subprocess.run(['./ballAlg-omp', *arg_list], stdout=f, stderr=null_file)
-
-for args, tree, expected_out in zip(query_args, tree_files, query_outputs):
-    arg_list = [tree, *args.split(' ')]
-    result = subprocess.run(['./ballQuery', *arg_list], capture_output=True, text=True)
+for args, expected_out in zip(query_args, query_outputs):
+    result = subprocess.run(['./ballQuery', *args], capture_output=True, text=True)
     if result.stdout.strip() == expected_out.strip():
         print('.', end='', flush=True)
     else:
         print('x', end='', flush=True)
-
 print()
-subprocess.run(['make', 'clean'], stdout=null_file)
 
+os.rmdir('trees')
