@@ -9,7 +9,10 @@ DBGFLAG = -D DEBUG
 # Flags for the linker
 LDFLAGS = -lm
 
-all: ballAlg ballQuery
+all: ballAlg ballQuery ballAlg-omp
+
+ballAlg-omp: ballAlg-omp.c gen_points.o point_operations.o ball_tree.o
+	$(CC) $(CFLAGS) -o $@ $^ -fopenmp ${LDFLAGS}
 
 ballAlg: ballAlg.c gen_points.o point_operations.o ball_tree.o
 	$(CC) $(CFLAGS) -o $@ $^ -fopenmp ${LDFLAGS}
@@ -28,10 +31,10 @@ ballQuery: ballQuery.c
 
 .PHONY: clean
 clean: 
-	@rm -f ballAlg ballQuery
+	@rm -f ballAlg ballQuery ballAlg-omp
 	@rm -f *.o
 
 .PHONY: zip
 
 zip: Makefile *.c *.h 
-	@zip src.zip $^
+	@zip g29omp.zip $^

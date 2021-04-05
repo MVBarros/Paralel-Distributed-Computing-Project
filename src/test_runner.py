@@ -40,7 +40,7 @@ subprocess.run(['mkdir', 'trees'], stdout=null_file)
 for args, out in zip(alg_args, tree_files):
     arg_list = args.split(' ')
     with open(out, 'w+') as f:
-        subprocess.run(['./ballAlg', *arg_list], stdout=f, stderr=null_file)
+        subprocess.run(['./ballAlg-omp', *arg_list], stdout=f, stderr=null_file)
 
 for args, tree, expected_out in zip(query_args, tree_files, query_outputs):
     arg_list = [tree, *args.split(' ')]
