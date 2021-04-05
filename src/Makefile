@@ -2,7 +2,7 @@
 CC = gcc
 
 # Flags for the compiler
-CFLAGS = -O3 -Wall
+CFLAGS = -O3 -Wall -std=gnu99
 
 DBGFLAG = -D DEBUG
 
