@@ -2,6 +2,7 @@
 import subprocess
 import sys
 import os
+import shutil
 
 if len(sys.argv) < 2:
     print("Usage: test_runner.py <executable>")
@@ -59,4 +60,4 @@ for args, expected_out in zip(query_args, query_outputs):
         print('x', end='', flush=True)
 print()
 
-os.rmdir('trees')
+shutil.rmtree('trees')
