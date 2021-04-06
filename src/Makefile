@@ -7,6 +7,8 @@ CFLAGS = -O3 -Wall -std=gnu99
 # Flags for the linker
 LDFLAGS = -lm
 
+.PHONY: all clean zip
+
 all: ballAlg ballAlg-omp ballQuery
 
 ballAlg-omp: ballAlg-omp.c gen_points.o point_operations.o ball_tree.o
@@ -27,11 +29,9 @@ point_operations.o: point_operations.c
 ballQuery: ballQuery.c
 	$(CC) $(CFLAGS) -o $@ $^ ${LDFLAGS}
 
-.PHONY: clean
 clean: 
 	@rm -f ballAlg ballQuery ballAlg-omp
 	@rm -f *.o
 
-.PHONY: zip
 zip: Makefile *.c *.h 
 	@zip g29omp.zip $^
