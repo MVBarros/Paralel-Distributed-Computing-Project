@@ -25,23 +25,9 @@ node_ptr node_list; // list of nodes of the ball tree
 double** node_centers; // list of centers of ball tree nodes
 long n_nodes; // number of nodes in the ball tree
 
+#define LEFT_PARTITION_SIZE(N) ((N) % 2 ? ((N) - 1) / 2 : (N) / 2)
 
-long right_partition_size(){
-    if(n_points % 2 == 0){
-        return n_points / 2;
-    }else{
-        return (n_points + 1) / 2;
-    }
-}
-
-long left_partition_size(){
-    if(n_points % 2 == 0){
-        return n_points / 2;
-    }else{
-        return (n_points - 1) / 2;
-    }
-}
-
+#define RIGHT_PARTITION_SIZE(N) ((N) % 2 ? ((N) + 1) / 2 : (N) / 2)
 
 /*
 * Returns the point in pts furthest away from point p
@@ -84,19 +70,19 @@ int compare_node(const void* pt1, const void* pt2) {
 }
 
 
-double* get_center(long node_id) {
+double* get_center() {
     memcpy(ortho_array_srt, ortho_array, sizeof(double*) * n_points);
     qsort(ortho_array_srt, n_points, sizeof(double*), compare_node);
 
-    if(n_points % 2 == 0) { // is even
+    if(n_points % 2) { // is odd
+        long middle = (n_points - 1) / 2;
+        copy_point(ortho_array_srt[middle], node_centers[node_id]);
+    }
+    else { // is even
         long middle_1 = (n_points / 2) - 1;
         long middle_2 = (n_points / 2);
         
-        middle_point(ortho_array_srt[middle_1], ortho_array_srt[middle_2], node_centers[node_id]);        
-    }
-    else { // is odd
-        long middle = (n_points - 1) / 2;
-        copy_point(ortho_array_srt[middle], node_centers[node_id]);
+        middle_point(ortho_array_srt[middle_1], ortho_array_srt[middle_2], node_centers[node_id]);
     }
     return node_centers[node_id];
 }
@@ -123,6 +109,9 @@ void fill_partitions(double** left, double** right, double* center) {
     }
 }
 
+/*
+* Returns the first point in pts with relation to the initial point list
+*/
 double* first_point() {
     double* min = pts[0];
     for(long i = 0; i < n_points; i++) {
@@ -134,7 +123,7 @@ double* first_point() {
 }
 
 node_ptr build_tree(){
-    if(n_points==1) {
+    if(n_points == 1) {
         return make_node(node_id, pts[0], 0, &node_list[node_id]);
     }    
 
@@ -143,11 +132,11 @@ node_ptr build_tree(){
 
     calc_orthogonal_projections(a, b);
 
-    double* center = get_center(node_id);
+    double* center = get_center();
     double radius = get_radius(center);
 
-    long n_points_left = left_partition_size();
-    long n_points_right = right_partition_size();
+    long n_points_left = LEFT_PARTITION_SIZE(n_points);
+    long n_points_right = RIGHT_PARTITION_SIZE(n_points);
 
     double **left = pts_aux;
     double **right = pts_aux + n_points_left;
