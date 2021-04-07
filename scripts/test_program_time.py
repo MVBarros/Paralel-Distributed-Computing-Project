@@ -23,7 +23,7 @@ expected_times = ['0.0', '0.0', '7.3', '23.2', '57.2', '122.5', '131.6']
 table=[]
 
 for args, expected_time in zip(alg_args, expected_times):
-    result = subprocess.run([executable, *args.split(' ')], capture_output=True, text=True)
+    result = subprocess.run([executable, *args.split(' ')], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
     time = result.stderr.strip()
     table.append([args, time, expected_time])
     
