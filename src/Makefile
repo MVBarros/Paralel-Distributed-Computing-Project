@@ -2,7 +2,7 @@
 CC = gcc
 
 # Flags for the compiler
-CFLAGS = -O3 -Wall 
+CFLAGS = -O3 -Wall
 
 # Flags for the linker
 LDFLAGS = -lm
@@ -12,10 +12,10 @@ LDFLAGS = -lm
 all: ballAlg ballAlg-omp ballQuery
 
 ballAlg-omp: ballAlg-omp.c gen_points.o point_operations.o ball_tree.o
-	$(CC) $(CFLAGS) -o $@ $^ -fopenmp ${LDFLAGS}
+	$(CC) $(CFLAGS) -fopenmp -o $@ $^ ${LDFLAGS}
 
 ballAlg: ballAlg.c gen_points.o point_operations.o ball_tree.o
-	$(CC) $(CFLAGS) -o $@ $^ -fopenmp ${LDFLAGS}
+	$(CC) $(CFLAGS) -fopenmp -o $@ $^ ${LDFLAGS}
 
 ball_tree.o: ball_tree.c
 	$(CC) $(CFLAGS) -c $^
