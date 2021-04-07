@@ -36,14 +36,22 @@ double** thread_ortho_tmps; //ortho_tmp point for each thread to use when comput
 double* get_furthest_away_point(double* p){
     double max_distance = 0.0;
     double* furthest_point = p;
-    for(long i = 0; i < n_points; i++){
-        double curr_distance = distance(p, pts[i]);
-        if(curr_distance > max_distance){
-            max_distance = curr_distance;
-            furthest_point = pts[i];
-        }        
-    }
-    return furthest_point;
+    //#pragma omp parallel private(max_distance, i)
+    //{
+        #pragma omp parallel for 
+        for(long i = 0; i < n_points; i++){
+            double curr_distance = distance(p, pts[i]);
+            #pragma omp critical 
+            {
+                if(curr_distance > max_distance){
+                    max_distance = curr_distance;
+                    furthest_point = pts[i];
+                }        
+            }
+            
+        }
+    //}
+    return furthest_point;        
 }
 
 double get_radius(double* center){
