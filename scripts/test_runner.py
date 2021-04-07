@@ -43,14 +43,12 @@ alg_args = [arg.split(' ') for arg in alg_args]
 
 query_args = [[tree, *arg.split(' ')] for tree, arg in zip(tree_files, query_args)]
 
-null_file = open('/dev/null', 'w')
-
 if not os.path.exists('trees'):
     os.makedirs('trees')
 
 for args, tree_file in zip(alg_args, tree_files):
     with open(tree_file, 'w+') as tree_fd:
-        subprocess.run([executable, *args], stdout=tree_fd, stderr=null_file)
+        subprocess.run([executable, *args], stdout=tree_fd, stderr=subprocess.DEVNULL)
 
 for args, expected_out in zip(query_args, query_outputs):
     result = subprocess.run(['./ballQuery', *args], capture_output=True, text=True)
