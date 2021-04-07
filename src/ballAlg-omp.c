@@ -24,13 +24,11 @@ node_ptr node_list; // list of nodes of the ball tree
 double** node_centers; // list of centers of ball tree nodes
 long n_nodes; // number of nodes in the ball tree
 
-double** nthreadslist;
+double** thread_ortho_tmps; //ortho_tmp point for each thread to use when computing orthogonal projections
 
 #define LEFT_PARTITION_SIZE(N) ((N) % 2 ? ((N) - 1) / 2 : (N) / 2)
 
 #define RIGHT_PARTITION_SIZE(N) ((N) % 2 ? ((N) + 1) / 2 : (N) / 2)
-
-
 
 /*
 * Returns the point in pts furthest away from point p
@@ -96,7 +94,7 @@ void calc_orthogonal_projections(double* a, double* b) {
     long i;
     #pragma omp parallel private(ortho_tmp, i)
     {
-        ortho_tmp = nthreadslist[omp_get_thread_num()];
+        ortho_tmp = thread_ortho_tmps[omp_get_thread_num()];
         #pragma omp for
         for(i = 0; i < n_points; i++) {
             orthogonal_projection(basub, a, pts[i], ortho_array[i], ortho_tmp);
@@ -164,9 +162,9 @@ node_ptr build_tree(){
 
 void alloc_memory() {
     int nthreads = omp_get_max_threads();
-    nthreadslist = (double**) malloc(sizeof(double*) * nthreads);
+    thread_ortho_tmps = (double**) malloc(sizeof(double*) * nthreads);
     for(int i = 0; i < nthreads; i++){
-        nthreadslist[i] = (double*) malloc(sizeof(double) * n_dims);
+        thread_ortho_tmps[i] = (double*) malloc(sizeof(double) * n_dims);
     }
     n_nodes = (n_points * 2) - 1;
     ortho_array = create_array_pts(n_dims, n_points);
