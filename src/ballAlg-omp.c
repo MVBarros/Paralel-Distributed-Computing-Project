@@ -38,7 +38,7 @@ double* get_furthest_away_point(double* p){
     double* furthest_point = p;
     //#pragma omp parallel private(max_distance, i)
     //{
-        #pragma omp parallel for 
+        #pragma omp for 
         for(long i = 0; i < n_points; i++){
             double curr_distance = distance(p, pts[i]);
             #pragma omp critical 
