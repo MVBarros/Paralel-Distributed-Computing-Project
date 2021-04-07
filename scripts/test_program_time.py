@@ -26,5 +26,5 @@ for args, expected_time in zip(alg_args, expected_times):
     result = subprocess.run([executable, *args.split(' ')], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
     time = result.stderr.strip()
     table.append([args, time, expected_time])
-    
+
 print(tabulate(table, headers=["Arguments", "Obtained Time", "Reference Time"], tablefmt="github"))

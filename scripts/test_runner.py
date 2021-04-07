@@ -37,7 +37,7 @@ query_outputs = [b'2.777747 5.539700',
                 b'7.939939 5.934679 3.951869 1.930474'
                 ]
 
-tree_files = ['./trees/ex-' + arg.replace(' ', '-') + '.tree' for arg in alg_args] 
+tree_files = ['./trees/ex-' + arg.replace(' ', '-') + '.tree' for arg in alg_args]
 
 alg_args = [arg.split(' ') for arg in alg_args]
 
