@@ -22,7 +22,7 @@ void sum_points(double* a, double* b, double* out);
 void sub_points(double* a, double* b, double* out);
 
 //Puts in out the ortogonal projection of point p onto line starting in a and defined by basub
-void orthogonal_projection(double* basub, double* b, double* p, double* out);
+void orthogonal_projection(double* basub, double* b, double* p, double* out, double* ortho_tmp);
 
 //Returns the middle of points a and b
 void middle_point(double* a, double* b, double* out);

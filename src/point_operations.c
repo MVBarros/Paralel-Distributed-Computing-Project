@@ -7,8 +7,6 @@
 extern int n_dims; // number of dimensions of each point
 extern int n_points;
 
-extern double* ortho_tmp;
-
 /*
 * Returns the squared distance between points pt1 and pt2
 */
@@ -91,7 +89,7 @@ void copy_point(double* p, double* copy) {
 /*
 * Puts in out the ortogonal projection of point p onto line starting in a and defined by basub
 */
-void orthogonal_projection(double* basub, double* a , double* p, double* out){
+void orthogonal_projection(double* basub, double* a , double* p, double* out, double* ortho_tmp){
     sub_points(p, a, ortho_tmp);
     double c = dot_product(ortho_tmp,basub);
     double d = dot_product(basub,basub);

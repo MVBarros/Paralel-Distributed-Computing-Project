@@ -90,7 +90,7 @@ double* get_center() {
 void calc_orthogonal_projections(double* a, double* b) {
     sub_points(b, a, basub);
     for(long i = 0; i < n_points; i++){
-        orthogonal_projection(basub, a, pts[i], ortho_array[i]);
+        orthogonal_projection(basub, a, pts[i], ortho_array[i], ortho_tmp);
     }
 }
 

@@ -18,16 +18,23 @@ double  **pts, // list of points of the current iteration of the algorithm
 long n_points; // total number of points in the dataset
 long node_id; // id of the current node of the algorithm
 
-double  *basub, // point containing b-a for the 2nd set of the algorithm 
-        *ortho_tmp; // temporary pointer used for calculation the orthogonal projection
+double  *basub; // point containing b-a for the 2nd set of the algorithm 
+        // temporary pointer used for calculation the orthogonal projection
 
 node_ptr node_list; // list of nodes of the ball tree
 double** node_centers; // list of centers of ball tree nodes
 long n_nodes; // number of nodes in the ball tree
 
+double** nthreadslist;
+
+
+
+
 #define LEFT_PARTITION_SIZE(N) ((N) % 2 ? ((N) - 1) / 2 : (N) / 2)
 
 #define RIGHT_PARTITION_SIZE(N) ((N) % 2 ? ((N) + 1) / 2 : (N) / 2)
+
+
 
 /*
 * Returns the point in pts furthest away from point p
@@ -89,8 +96,17 @@ double* get_center() {
 
 void calc_orthogonal_projections(double* a, double* b) {
     sub_points(b, a, basub);
-    for(long i = 0; i < n_points; i++){
-        orthogonal_projection(basub, a, pts[i], ortho_array[i]);
+    double* ortho_tmp;
+    printf("1- entra aqui");
+    //#pragma omp parallel private(ortho_tmp)
+    {
+        printf("2- entra aqui");
+        ortho_tmp = nthreadslist[omp_get_thread_num()];  
+        //#pragma omp for
+            for(long i = 0; i < n_points; i++){
+                printf("4- entra aqui");
+                orthogonal_projection(basub, a, pts[i], ortho_array[i], ortho_tmp);
+            }        
     }
 }
 
@@ -116,7 +132,7 @@ node_ptr build_tree(){
 
     double* a = get_furthest_away_point(pts[0]);
     double* b = get_furthest_away_point(a);
-
+    printf("0- entra aqui");
     calc_orthogonal_projections(a, b);
 
     double* center = get_center();
@@ -154,11 +170,18 @@ node_ptr build_tree(){
 }
 
 void alloc_memory() {
+    //ortho_tmp = (double*) malloc(sizeof(double) * n_dims);
+    int nthreads = omp_get_num_threads();
+    printf("alloc nthreads");
+    nthreadslist = (double**) malloc(sizeof(double*) * nthreads);
+    printf("alloc nthreadsList");
+    for(int i = 0; i < nthreads; i++){
+        nthreadslist[i] = (double*) malloc(sizeof(double) * n_dims);
+    }
     n_nodes = (n_points * 2) - 1;
     ortho_array = create_array_pts(n_dims, n_points);
-    ortho_array_srt = (double**) malloc(sizeof(double) * n_points);
-    basub = (double*) malloc(sizeof(double) * n_dims);
-    ortho_tmp = (double*) malloc(sizeof(double) * n_dims);
+    ortho_array_srt = (double**) malloc(sizeof(double*) * n_points);
+    basub = (double*) malloc(sizeof(double) * n_dims);    
     pts_aux = (double**) malloc(sizeof(double*) * n_points);
     node_list = (node_ptr) malloc(sizeof(node_t) * n_nodes);
     node_centers = create_array_pts(n_dims, n_nodes);
@@ -171,9 +194,11 @@ void dump_tree() {
 }
 
 int main(int argc, char** argv) {
+    printf("entra no main");
     double exec_time;
     exec_time = -omp_get_wtime();
     pts = get_points(argc, argv, &n_dims, &n_points);
+    printf("antes do alloc");
     alloc_memory();
     build_tree();
     exec_time += omp_get_wtime();
