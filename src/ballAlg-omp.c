@@ -92,10 +92,16 @@ double* get_center() {
 
 void calc_orthogonal_projections(double* a, double* b) {
     sub_points(b, a, basub);
-    #pragma omp parallel for
-    for(long i = 0; i < n_points; i++) {
-        orthogonal_projection(basub, a, pts[i], ortho_array[i], nthreadslist[omp_get_thread_num()]);
-    }        
+    double* ortho_tmp;
+    long i;
+    #pragma omp parallel private(ortho_tmp, i)
+    {
+        ortho_tmp = nthreadslist[omp_get_thread_num()];
+        #pragma omp for
+        for(i = 0; i < n_points; i++) {
+            orthogonal_projection(basub, a, pts[i], ortho_array[i], ortho_tmp);
+        }  
+    }      
 }
 
 void fill_partitions(double** left, double** right, double* center) {
@@ -157,7 +163,7 @@ node_ptr build_tree(){
 }
 
 void alloc_memory() {
-    int nthreads = omp_get_num_threads();
+    int nthreads = omp_get_max_threads();
     nthreadslist = (double**) malloc(sizeof(double*) * nthreads);
     for(int i = 0; i < nthreads; i++){
         nthreadslist[i] = (double*) malloc(sizeof(double) * n_dims);
