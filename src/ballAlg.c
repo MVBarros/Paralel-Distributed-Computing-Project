@@ -156,7 +156,7 @@ node_ptr build_tree(){
 void alloc_memory() {
     n_nodes = (n_points * 2) - 1;
     ortho_array = create_array_pts(n_dims, n_points);
-    ortho_array_srt = (double**) malloc(sizeof(double) * n_points);
+    ortho_array_srt = (double**) malloc(sizeof(double*) * n_points);
     basub = (double*) malloc(sizeof(double) * n_dims);
     ortho_tmp = (double*) malloc(sizeof(double) * n_dims);
     pts_aux = (double**) malloc(sizeof(double*) * n_points);

@@ -19,14 +19,12 @@ long n_points; // total number of points in the dataset
 long node_id; // id of the current node of the algorithm
 
 double  *basub; // point containing b-a for the 2nd set of the algorithm 
-        // temporary pointer used for calculation the orthogonal projection
 
 node_ptr node_list; // list of nodes of the ball tree
 double** node_centers; // list of centers of ball tree nodes
 long n_nodes; // number of nodes in the ball tree
 
 double** nthreadslist;
-
 
 #define LEFT_PARTITION_SIZE(N) ((N) % 2 ? ((N) - 1) / 2 : (N) / 2)
 
@@ -94,16 +92,10 @@ double* get_center() {
 
 void calc_orthogonal_projections(double* a, double* b) {
     sub_points(b, a, basub);
-    double* ortho_tmp;
-    long i;
-    #pragma omp parallel private(ortho_tmp, i)
-    {
-        ortho_tmp = nthreadslist[omp_get_thread_num()];  
-        #pragma omp for
-            for(i = 0; i < n_points; i++) {
-                orthogonal_projection(basub, a, pts[i], ortho_array[i], ortho_tmp);
-            }        
-    }
+    #pragma omp parallel for
+    for(long i = 0; i < n_points; i++) {
+        orthogonal_projection(basub, a, pts[i], ortho_array[i], nthreadslist[omp_get_thread_num()]);
+    }        
 }
 
 void fill_partitions(double** left, double** right, double* center) {
