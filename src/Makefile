@@ -2,7 +2,7 @@
 CC = gcc
 
 # Flags for the compiler
-CFLAGS = -O3 -Wall -fopenmp
+CFLAGS = -fopenmp -O3 -Wall 
 
 # Flags for the linker
 LDFLAGS = -lm
