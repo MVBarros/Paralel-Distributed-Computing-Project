@@ -51,7 +51,7 @@ for args, tree_file in zip(alg_args, tree_files):
         subprocess.run([executable, *args], stdout=tree_fd, stderr=subprocess.DEVNULL)
 
 for args, expected_out in zip(query_args, query_outputs):
-    result = subprocess.run(['./ballQuery', *args], capture_output=True, text=True)
+    result = subprocess.run(['./ballQuery', *args], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
     if result.stdout.strip() == expected_out.strip():
         print('.', end='', flush=True)
     else:
