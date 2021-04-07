@@ -16,7 +16,7 @@ double distance(double* pt1, double* pt2)
 
     for(int i = 0; i < n_dims; i++)
         dist += (pt1[i] - pt2[i]) * (pt1[i] - pt2[i]);
-    return dist; 
+    return dist;
 }
 
 /*
