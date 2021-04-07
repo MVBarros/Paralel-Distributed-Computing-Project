@@ -132,16 +132,21 @@ node_ptr build_tree(){
 
     node_ptr node = make_node(node_id, center, radius, &node_list[node_id]);
 
-    double **child_pts_aux = pts;
+    double **left_pts_aux = pts;
+    double **right_pts_aux = pts + n_points_left;
+    double **ortho_array_right = ortho_array + n_points_left;
+    double **ortho_array_srt_right = ortho_array_srt + n_points_left;
 
     pts = left;
-    pts_aux = child_pts_aux;
+    pts_aux = left_pts_aux;
     n_points = n_points_left;
     node_id++;
     node_ptr left_node = build_tree();
 
     pts = right;
-    pts_aux = child_pts_aux + n_points_left;
+    pts_aux = right_pts_aux;
+    ortho_array = ortho_array_right;
+    ortho_array_srt = ortho_array_srt_right;
     n_points = n_points_right;
     node_id++;
     node_ptr right_node = build_tree();
