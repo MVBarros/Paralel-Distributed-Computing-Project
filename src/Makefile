@@ -29,9 +29,9 @@ point_operations.o: point_operations.c
 ballQuery: ballQuery.c
 	$(CC) $(CFLAGS) -o $@ $^ ${LDFLAGS}
 
-clean: 
+clean:
 	@rm -f ballAlg ballQuery ballAlg-omp
 	@rm -f *.o
 
-zip: Makefile *.c *.h 
+zip: Makefile *.c *.h
 	@zip g29omp.zip $^
