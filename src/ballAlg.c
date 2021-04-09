@@ -49,9 +49,7 @@ double* get_furthest_away_point(double* p) {
 Returns the radius of the ball tree node defined by point center
 */
 double get_radius(double* center) {
-
     double* a = get_furthest_away_point(center);
-
     return sqrt(distance(a, center));
 }
 
@@ -60,7 +58,6 @@ Used for quicksort
 Compares the x coordenate of the two points
 */
 int compare_node(const void* pt1, const void* pt2) {
-
     double* dpt1 = *((double**) pt1);
     double* dpt2 = *((double**) pt2);
 
