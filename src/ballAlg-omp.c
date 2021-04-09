@@ -34,29 +34,29 @@ double** thread_ortho_tmps; //ortho_tmp point for each thread to use when comput
 * Returns the point in pts furthest away from point p
 */
 double* get_furthest_away_point(double* p){
-    int tid;
-    double max_distance = 0.0, curr_distance = 0.0;
+    double total_max_distance = 0.0, thread_max_distance = 0.0, thread_curr_distance = 0.0;
     double* furthest_point = p;
-    long i;
-    #pragma omp parallel private(curr_distance, tid, i)
+    long i, j;
+    #pragma omp parallel firstprivate(thread_max_distance, thread_curr_distance) private(i, j)
     {   
-        tid = omp_get_thread_num();
-
         #pragma omp for
         for(i = 0; i < n_points; i++){
-            curr_distance = distance(p, pts[i]);
-            #pragma omp critical 
-            {                   
-                if(curr_distance > max_distance){
-                    max_distance = curr_distance;
-                    furthest_point = pts[i];                    
-                }                        
-            }            
-            //printf("Thread: %d\titer=%d\tmax_distance:%f\tcurr_distance=%f\n", tid, i, max_distance, curr_distance);
-            //fflush(stdout);       
-        }                                
-    }
-    //printf("max distance I found: %f\n", max_distance);
+            thread_curr_distance = distance(p, pts[i]);            
+
+            if(thread_curr_distance > thread_max_distance) {
+                thread_max_distance = thread_curr_distance;
+                j = i;                
+            }                                           
+        }   
+        
+        #pragma omp critical 
+        {               
+            if(thread_max_distance > total_max_distance) {
+                total_max_distance = thread_max_distance;
+                furthest_point = pts[j];    
+            }
+        }                
+    }   
     return furthest_point;        
 }
 
