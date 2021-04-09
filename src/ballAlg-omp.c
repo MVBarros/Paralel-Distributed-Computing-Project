@@ -34,7 +34,9 @@ double** thread_ortho_tmps; //ortho_tmp point for each thread to use when comput
 * Returns the point in pts furthest away from point p
 */
 double* get_furthest_away_point(double* p){
-    double total_max_distance = 0.0, thread_max_distance = 0.0, thread_curr_distance = 0.0;
+    double total_max_distance = 0.0;
+    double thread_max_distance = 0.0;
+    double thread_curr_distance = 0.0;
     double* furthest_point = p;
     long i;
     double* local_min = p;
