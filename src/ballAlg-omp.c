@@ -18,7 +18,7 @@ double  **pts, // list of points of the current iteration of the algorithm
 long n_points; // total number of points in the dataset
 long node_id; // id of the current node of the algorithm
 
-double  *basub; // point containing b-a for the 2nd set of the algorithm 
+double  *basub; // point containing b-a for the 2nd set of the algorithm
 
 node_ptr node_list; // list of nodes of the ball tree
 double** node_centers; // list of centers of ball tree nodes
@@ -39,25 +39,25 @@ double* get_furthest_away_point(double* p){
     double* furthest_point = p;
     long i;
     #pragma omp parallel private(curr_distance, tid, i)
-    {   
+    {
         tid = omp_get_thread_num();
 
         #pragma omp for
         for(i = 0; i < n_points; i++){
             curr_distance = distance(p, pts[i]);
-            #pragma omp critical 
-            {                   
+            #pragma omp critical
+            {
                 if(curr_distance > max_distance){
                     max_distance = curr_distance;
-                    furthest_point = pts[i];                    
-                }                        
-            }            
+                    furthest_point = pts[i];
+                }
+            }
             //printf("Thread: %d\titer=%d\tmax_distance:%f\tcurr_distance=%f\n", tid, i, max_distance, curr_distance);
-            //fflush(stdout);       
-        }                                
+            //fflush(stdout);
+        }
     }
     //printf("max distance I found: %f\n", max_distance);
-    return furthest_point;        
+    return furthest_point;
 }
 
 double get_radius(double* center){
@@ -70,7 +70,7 @@ double get_radius(double* center){
 
 int compare_node(const void* pt1, const void* pt2) {
 
-    double* dpt1 = *((double**) pt1);    
+    double* dpt1 = *((double**) pt1);
     double* dpt2 = *((double**) pt2);
 
     if(dpt1[0] > dpt2[0]) {
@@ -81,7 +81,7 @@ int compare_node(const void* pt1, const void* pt2) {
     }
     else {
         return 0;
-    }    
+    }
 }
 
 
@@ -96,7 +96,7 @@ double* get_center() {
     else { // is even
         long middle_1 = (n_points / 2) - 1;
         long middle_2 = (n_points / 2);
-        
+
         middle_point(ortho_array_srt[middle_1], ortho_array_srt[middle_2], node_centers[node_id]);
     }
     return node_centers[node_id];
@@ -112,15 +112,15 @@ void calc_orthogonal_projections(double* a, double* b) {
         #pragma omp for
         for(i = 0; i < n_points; i++) {
             orthogonal_projection(basub, a, pts[i], ortho_array[i], ortho_tmp);
-        }  
-    }      
+        }
+    }
 }
 
 void fill_partitions(double** left, double** right, double* center) {
     long l = 0;
     long r = 0;
     for(long i = 0; i < n_points; i++) {
-        if(ortho_array[i][0] < center[0]) {            
+        if(ortho_array[i][0] < center[0]) {
             left[l] = pts[i];
             l++;
         }
@@ -134,7 +134,7 @@ void fill_partitions(double** left, double** right, double* center) {
 node_ptr build_tree(){
     if(n_points == 1) {
         return make_node(node_id, pts[0], 0, &node_list[node_id]);
-    }    
+    }
 
     double* a = get_furthest_away_point(pts[0]);
     double* b = get_furthest_away_point(a);
@@ -156,18 +156,18 @@ node_ptr build_tree(){
     double **child_pts_aux = pts;
 
     pts = left;
-    pts_aux = child_pts_aux;    
+    pts_aux = child_pts_aux;
     n_points = n_points_left;
     node_id++;
     node_ptr left_node = build_tree();
 
     pts = right;
-    pts_aux = child_pts_aux + n_points_left;    
+    pts_aux = child_pts_aux + n_points_left;
     n_points = n_points_right;
     node_id++;
     node_ptr right_node = build_tree();
 
-    
+
     node->left_id = left_node->id;
     node->right_id = right_node->id;
 
@@ -183,16 +183,10 @@ void alloc_memory() {
     n_nodes = (n_points * 2) - 1;
     ortho_array = create_array_pts(n_dims, n_points);
     ortho_array_srt = (double**) malloc(sizeof(double*) * n_points);
-    basub = (double*) malloc(sizeof(double) * n_dims);    
+    basub = (double*) malloc(sizeof(double) * n_dims);
     pts_aux = (double**) malloc(sizeof(double*) * n_points);
     node_list = (node_ptr) malloc(sizeof(node_t) * n_nodes);
     node_centers = create_array_pts(n_dims, n_nodes);
-}
-
-void dump_tree() {
-    for (long i = 0; i < n_nodes; i++) {
-        print_node(&node_list[i]);
-    }
 }
 
 int main(int argc, char** argv) {
@@ -204,5 +198,5 @@ int main(int argc, char** argv) {
     exec_time += omp_get_wtime();
     fprintf(stderr, "%.2lf\n", exec_time);
     printf("%d %ld\n", n_dims, n_nodes);
-    dump_tree(); 
+    dump_tree();
 }

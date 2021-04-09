@@ -32,6 +32,7 @@ ballQuery: ballQuery.c
 clean:
 	@rm -f ballAlg ballQuery ballAlg-omp
 	@rm -f *.o
+	@rm -f *.zip
 
 zip: Makefile *.c *.h
 	@zip g29omp.zip $^
