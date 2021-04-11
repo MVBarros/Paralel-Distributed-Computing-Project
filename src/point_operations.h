@@ -6,9 +6,6 @@ double distance(double* pt1, double* pt2);
 // Print point p to stdout
 void print_point(double* p);
 
-// Print point list pt_list to stdout
-void print_point_list(double** pt_list);
-
 // Puts in out the multiplication of value b by point a
 void mul_scalar(double* a, double b, double* out);
 

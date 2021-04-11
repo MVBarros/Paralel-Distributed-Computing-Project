@@ -5,7 +5,6 @@
 #include "point_operations.h"
 
 extern int n_dims; // number of dimensions of each point
-extern int n_points;
 
 /*
 * Returns the squared distance between points pt1 and pt2
@@ -28,16 +27,6 @@ void print_point(double* p) {
     }
     printf("\n");
 }
-
-/*
-* Print point list pt_list to stdout
-*/
-void print_point_list(double** pt_list) {
-    for (long i = 0; i < n_points; i++) {
-        print_point(pt_list[i]);
-    }
-}
-
 
 /*
 * Puts in out multiplication of value b by point a
