@@ -39,4 +39,6 @@ for num_threads in num_threads_list:
         entry.append(time)
 
 
-print(tabulate(table, headers=["Arguments", "Serial", "2 Threads", "4 Threads", "8 Threads"], tablefmt="github"))
+headers = ["Arguments", "Serial", *(num + " Threads" for num in num_threads_list)]
+
+print(tabulate(table, headers=headers, tablefmt="github"))
