@@ -12,14 +12,17 @@ LDFLAGS = -lm
 
 .PHONY: all ompp clean zip
 
-all: ballAlg ballAlg-omp ballQuery
+all: ballAlg ballAlg-omp ballAlg-omp2 ballQuery
 
 ompp: ballAlg-ompp ballQuery
 
 ballAlg-ompp: ballAlg-omp.c gen_points.o point_operations.o ball_tree.o
 	$(CC_OMPP) $(CFLAGS) -fopenmp -o $@ $^ ${LDFLAGS}
 
-ballAlg-omp: ballAlg-omp2.c gen_points.o point_operations.o ball_tree.o
+ballAlg-omp: ballAlg-omp.c gen_points.o point_operations.o ball_tree.o
+	$(CC) $(CFLAGS) -fopenmp -o $@ $^ ${LDFLAGS}
+
+ballAlg-omp2: ballAlg-omp2.c gen_points.o point_operations.o ball_tree.o
 	$(CC) $(CFLAGS) -fopenmp -o $@ $^ ${LDFLAGS}
 
 ballAlg: ballAlg.c gen_points.o point_operations.o ball_tree.o
@@ -38,7 +41,7 @@ ballQuery: ballQuery.c
 	$(CC) $(CFLAGS) -o $@ $^ ${LDFLAGS}
 
 clean:
-	@rm -f ballAlg ballQuery ballAlg-omp
+	@rm -f ballAlg ballQuery ballAlg-omp ballAlg-omp2
 	@rm -f *.o
 	@rm -f *.zip
 
