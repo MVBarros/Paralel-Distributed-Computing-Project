@@ -13,7 +13,7 @@ parallel_executable = "./" + str(sys.argv[2])
 
 env = dict(os.environ)
 
-num_threads_list = ["2", "4" ,"8"]
+num_threads_list = ["1", "2", "4" ,"8"]
 
 alg_args = ['2 5 0',
             '2 8 0',
@@ -39,6 +39,6 @@ for num_threads in num_threads_list:
         entry.append(time)
 
 
-headers = ["Arguments", "Serial", *(num + " Threads" for num in num_threads_list)]
+headers = ["Arguments", "Serial", *(f"Parallel {num} threads" for num in num_threads_list)]
 
 print(tabulate(table, headers=headers, tablefmt="github"))
