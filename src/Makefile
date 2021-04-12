@@ -19,7 +19,7 @@ ompp: ballAlg-ompp ballQuery
 ballAlg-ompp: ballAlg-omp.c gen_points.o point_operations.o ball_tree.o
 	$(CC_OMPP) $(CFLAGS) -fopenmp -o $@ $^ ${LDFLAGS}
 
-ballAlg-omp: ballAlg-omp.c gen_points.o point_operations.o ball_tree.o
+ballAlg-omp: ballAlg-omp2.c gen_points.o point_operations.o ball_tree.o
 	$(CC) $(CFLAGS) -fopenmp -o $@ $^ ${LDFLAGS}
 
 ballAlg: ballAlg.c gen_points.o point_operations.o ball_tree.o
