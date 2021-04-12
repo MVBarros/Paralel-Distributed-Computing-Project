@@ -134,7 +134,6 @@ void fill_partitions(double** left, double** right, double* center) {
 }
 
 void build_tree() {
-    fprintf(stderr, "%d\n", omp_get_thread_num());
     if(n_points == 1) {
         make_node(node_id, pts[0], 0, &node_list[node_id]);
         return;
