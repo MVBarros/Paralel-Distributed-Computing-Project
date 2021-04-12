@@ -230,6 +230,7 @@ void alloc_memory() {
 }
 
 int main(int argc, char** argv) {
+    omp_set_nested(1);
     double exec_time;
     exec_time = -omp_get_wtime();
     #pragma omp parallel
