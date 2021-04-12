@@ -28,9 +28,10 @@ omp_lock_t node_lock;
 double** thread_ortho_tmps; //ortho_tmp point for each thread to use when computing orthogonal projections
 double** thread_basubs; // point containing b-a for the orthogonal projections
 
+int curr_depth; // current depth of the algorithm
 int max_depth; // max depth at which point no more tasks are started
 
-#pragma omp threadprivate(pts,pts_aux,ortho_array, ortho_array_srt, n_points, node_id)
+#pragma omp threadprivate(pts,pts_aux,ortho_array, ortho_array_srt, n_points, node_id, curr_depth)
 
 #define LEFT_PARTITION_SIZE(N) ((N) % 2 ? ((N) - 1) / 2 : (N) / 2)
 #define RIGHT_PARTITION_SIZE(N) ((N) % 2 ? ((N) + 1) / 2 : (N) / 2)
@@ -132,7 +133,8 @@ void fill_partitions(double** left, double** right, double* center) {
     }
 }
 
-void build_tree(int depth) {
+void build_tree() {
+    fprintf(stderr, "%d\n", omp_get_thread_num());
     if(n_points == 1) {
         make_node(node_id, pts[0], 0, &node_list[node_id]);
         return;
@@ -165,9 +167,11 @@ void build_tree(int depth) {
     long node_id_right = ++node_counter;
     omp_unset_lock(&node_lock);
 
+    int child_depth = curr_depth + 1;
+
     fill_partitions(left, right, center);
 
-    if(depth <= max_depth){
+    if(curr_depth <= max_depth){
             #pragma omp task
             {
                 pts = left;
@@ -176,7 +180,8 @@ void build_tree(int depth) {
                 ortho_array_srt = ortho_array_srt_left;
                 n_points = n_points_left;
                 node_id = node_id_left;
-                build_tree(depth+1);
+                curr_depth = child_depth;
+                build_tree();
             }
 
             pts = right;
@@ -185,7 +190,8 @@ void build_tree(int depth) {
             ortho_array_srt = ortho_array_srt_right;
             n_points = n_points_right;
             node_id = node_id_right;
-            build_tree(depth+1);
+            curr_depth = child_depth;
+            build_tree();
 
             #pragma omp taskwait
     }
@@ -196,7 +202,8 @@ void build_tree(int depth) {
         ortho_array_srt = ortho_array_srt_left;
         n_points = n_points_left;
         node_id = node_id_left;
-        build_tree(depth+1);
+        curr_depth = child_depth;
+        build_tree();
 
         pts = right;
         pts_aux = pts_aux_right;
@@ -204,7 +211,8 @@ void build_tree(int depth) {
         ortho_array_srt = ortho_array_srt_right;
         n_points = n_points_right;
         node_id = node_id_right;
-        build_tree(depth+1);
+        curr_depth = child_depth;
+        build_tree();
     }
     node->left_id = node_id_left;
     node->right_id = node_id_right;
@@ -226,6 +234,7 @@ void alloc_memory() {
     node_centers = create_array_pts(n_dims, n_nodes);
 
     max_depth = (int) log2(omp_get_max_threads());
+    curr_depth = 1;
     omp_init_lock(&node_lock);
 }
 
@@ -238,7 +247,7 @@ int main(int argc, char** argv) {
     {
         pts = get_points(argc, argv, &n_dims, &n_points);
         alloc_memory();
-        build_tree(1);
+        build_tree();
     }
     exec_time += omp_get_wtime();
     fprintf(stderr, "%.2lf\n", exec_time);
