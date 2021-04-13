@@ -31,6 +31,8 @@ double** thread_basubs; // point containing b-a for the orthogonal projections
 int curr_depth; // current depth of the algorithm
 int max_depth; // max depth at which point no more tasks are started
 
+int n_threads; // number of threads available to the program
+
 #pragma omp threadprivate(pts,pts_aux,ortho_array, ortho_array_srt, n_points, node_id, curr_depth)
 
 #define LEFT_PARTITION_SIZE(N) ((N) % 2 ? ((N) - 1) / 2 : (N) / 2)
@@ -104,11 +106,10 @@ double* get_center() {
 Computes the orthogonal projections of points in pts onto line defined by b-a
 */
 void calc_orthogonal_projections(double* a, double* b) {
-    double* basub;
-    basub = thread_basubs[omp_get_thread_num()];
+    double* basub = thread_basubs[omp_get_thread_num()];
+    double* ortho_tmp = thread_ortho_tmps[omp_get_thread_num()];
+
     sub_points(b, a, basub);
-    double* ortho_tmp;
-    ortho_tmp = thread_ortho_tmps[omp_get_thread_num()];
     for(long i = 0; i < n_points; i++){
         orthogonal_projection(basub, a, pts[i], ortho_array[i], ortho_tmp);
     }
@@ -218,10 +219,10 @@ void build_tree() {
 }
 
 void alloc_memory() {
-    int nthreads = omp_get_max_threads();
-    thread_ortho_tmps = (double**) malloc(sizeof(double*) * nthreads);
-    thread_basubs = (double**)malloc(sizeof(double*) * nthreads);
-    for(int i = 0; i < nthreads; i++){
+    n_threads = omp_get_max_threads();
+    thread_ortho_tmps = (double**) malloc(sizeof(double*) * n_threads);
+    thread_basubs = (double**)malloc(sizeof(double*) * n_threads);
+    for(int i = 0; i < n_threads; i++){
         thread_ortho_tmps[i] = (double*) malloc(sizeof(double) * n_dims);
         thread_basubs[i] = (double*) malloc(sizeof(double) * n_dims);
     }
@@ -238,6 +239,7 @@ void alloc_memory() {
 }
 
 int main(int argc, char** argv) {
+    omp_set_nested(1);
     double exec_time;
     exec_time = -omp_get_wtime();
     #pragma omp parallel
