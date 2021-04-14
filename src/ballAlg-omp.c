@@ -171,7 +171,7 @@ void build_tree() {
 
     fill_partitions(left, right, center);
 
-    if(curr_depth <= max_depth){
+    if(curr_depth < max_depth){
             #pragma omp task
             {
                 pts = left;
@@ -234,7 +234,7 @@ void alloc_memory() {
     node_centers = create_array_pts(n_dims, n_nodes);
 
     max_depth = (int) log2(omp_get_max_threads());
-    curr_depth = 1;
+    curr_depth = 0;
     omp_init_lock(&node_lock);
 }
 
