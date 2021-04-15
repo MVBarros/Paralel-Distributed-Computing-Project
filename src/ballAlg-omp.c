@@ -64,24 +64,7 @@ double get_radius(double* center) {
     return sqrt(distance(a, center));
 }
 
-/*
-Used for quicksort
-Compares the x coordenate of the two points
-*/
-int compare_node(const void* pt1, const void* pt2) {
-    double* dpt1 = *((double**) pt1);
-    double* dpt2 = *((double**) pt2);
 
-    if(dpt1[0] > dpt2[0]) {
-        return 1;
-    }
-    else if(dpt1[0] < dpt2[0]) {
-        return -1;
-    }
-    else {
-        return 0;
-    }
-}
 
 /*
 Returns the median projection of the dataset
@@ -90,7 +73,7 @@ by sorting the projections based on their x coordinate
 double* get_center() {
     memcpy(ortho_array_srt, ortho_array, sizeof(double*) * n_points);
     if(curr_depth < max_depth){
-        TopDownMergeSort(ortho_array_srt, ortho_array_work, n_points);
+        TopDownMergeSort(ortho_array_srt, ortho_array_work, n_points, (max_depth-curr_depth));
     }else{
         qsort(ortho_array_srt, n_points, sizeof(double*), compare_node);
     }

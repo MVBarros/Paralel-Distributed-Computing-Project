@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <omp.h>
-
+#include <stdlib.h>
 
 
 //  Left source half is A[ iBegin:iMiddle-1].
@@ -24,25 +24,50 @@ void TopDownMerge(double** A, long iBegin, long iMiddle, long iEnd, double** B)
     }
 }
 
+/*
+Used for quicksort
+Compares the x coordenate of the two points
+*/
+int compare_node(const void* pt1, const void* pt2) {
+    double* dpt1 = *((double**) pt1);
+    double* dpt2 = *((double**) pt2);
+
+    if(dpt1[0] > dpt2[0]) {
+        return 1;
+    }
+    else if(dpt1[0] < dpt2[0]) {
+        return -1;
+    }
+    else {
+        return 0;
+    }
+}
+
 // Split A[] into 2 runs, sort both runs into B[], merge both runs from B[] to A[]
 // iBegin is inclusive; iEnd is exclusive (A[iEnd] is not in the set).
-void TopDownSplitMerge(double** B, long iBegin, long iEnd, double** A)
+void TopDownSplitMerge(double** B, long iBegin, long iEnd, double** A, int depth_atm, int depth_max)
 {
     if(iEnd - iBegin <= 1)                      // if run size == 1
         return;                                 //   consider it sorted
     // split the run longer than 1 item into halves
-    long iMiddle = (iEnd + iBegin) / 2;              // iMiddle = mid point
-    // recursively sort both runs from array A[] into B[]
-    TopDownSplitMerge(A, iBegin,  iMiddle, B);  // sort the left  run
-    TopDownSplitMerge(A, iMiddle,    iEnd, B);  // sort the right run
-    // merge the resulting runs from array B[] into A[]
-    TopDownMerge(B, iBegin, iMiddle, iEnd, A);
+    long iMiddle = (iEnd + iBegin) / 2; 
+
+    if(depth_atm < depth_max){
+        depth_atm +=1;    
+        TopDownSplitMerge(A, iBegin,  iMiddle, B, depth_atm, depth_max);  // sort the left  run
+        TopDownSplitMerge(A, iMiddle,    iEnd, B, depth_atm, depth_max);  // sort the right run
+        // merge the resulting runs from array B[] into A[]
+        TopDownMerge(B, iBegin, iMiddle, iEnd, A);
+    }else{
+        qsort(A+iBegin, iEnd-iBegin, sizeof(double*), compare_node);
+    }  
+
 }
 
 
 // Array A[] has the items to sort; array B[] is a work array.
-void TopDownMergeSort(double** A, double** B, long n)
+void TopDownMergeSort(double** A, double** B, long n, int depth_max)
 {
     memcpy(B, A, n* sizeof(double*));           // one time copy of A[] to B[]
-    TopDownSplitMerge(B, 0, n, A);   // sort data from B[] into A[]
+    TopDownSplitMerge(B, 0, n, A, 0, depth_max);   // sort data from B[] into A[]
 }
