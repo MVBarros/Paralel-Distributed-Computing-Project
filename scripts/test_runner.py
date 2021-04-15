@@ -46,16 +46,16 @@ query_args = [[tree, *arg.split(' ')] for tree, arg in zip(tree_files, query_arg
 if not os.path.exists('trees'):
     os.makedirs('trees')
 
-for args, tree_file in zip(alg_args, tree_files):
+for all_arg, tree_file, query_arg, expected_out in zip(alg_args, tree_files, query_args, query_outputs):
     with open(tree_file, 'w+') as tree_fd:
-        subprocess.run([executable, *args], stdout=tree_fd, stderr=subprocess.DEVNULL)
-
-for args, expected_out in zip(query_args, query_outputs):
-    result = subprocess.run(['../src/ballQuery', *args], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        subprocess.run([executable, *all_arg], stdout=tree_fd, stderr=subprocess.DEVNULL)
+    result = subprocess.run(['../src/ballQuery', *query_arg], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
     if result.stdout.strip() == expected_out.strip():
         print('.', end='', flush=True)
     else:
         print('x', end='', flush=True)
+    os.remove(tree_file)
+
 print()
 
 shutil.rmtree('trees')
