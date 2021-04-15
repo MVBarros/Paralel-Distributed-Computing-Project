@@ -1,0 +1,5 @@
+*.o
+ballAlg
+ballAlg-omp
+ballQuery
+*.zip
