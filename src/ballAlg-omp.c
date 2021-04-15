@@ -72,12 +72,11 @@ by sorting the projections based on their x coordinate
 */
 double* get_center() {
     memcpy(ortho_array_srt, ortho_array, sizeof(double*) * n_points);
-    if(curr_depth < max_depth){
+    if(curr_depth < max_depth) {
         merge_sort(ortho_array_srt, ortho_array_work, n_points, (max_depth-curr_depth));
     }else{
         qsort(ortho_array_srt, n_points, sizeof(double*), compare_node);
     }
-
 
     if(n_points % 2) { // is odd
         long middle = (n_points - 1) / 2;
@@ -164,30 +163,30 @@ void build_tree() {
     fill_partitions(left, right, center);
 
     if(curr_depth < max_depth){
-            #pragma omp task
-            {
-                pts = left;
-                pts_aux = pts_aux_left;
-                ortho_array = ortho_array_left;
-                ortho_array_srt = ortho_array_srt_left;
-                ortho_array_work = ortho_array_work_left;
-                n_points = n_points_left;
-                node_id = node_id_left;
-                curr_depth = child_depth;
-                build_tree();
-            }
-
-            pts = right;
-            pts_aux = pts_aux_right;
-            ortho_array = ortho_array_right;
-            ortho_array_srt = ortho_array_srt_right;
-            ortho_array_work = ortho_array_work_right;
-            n_points = n_points_right;
-            node_id = node_id_right;
+        #pragma omp task
+        {
+            pts = left;
+            pts_aux = pts_aux_left;
+            ortho_array = ortho_array_left;
+            ortho_array_srt = ortho_array_srt_left;
+            ortho_array_work = ortho_array_work_left;
+            n_points = n_points_left;
+            node_id = node_id_left;
             curr_depth = child_depth;
             build_tree();
+        }
 
-            #pragma omp taskwait
+        pts = right;
+        pts_aux = pts_aux_right;
+        ortho_array = ortho_array_right;
+        ortho_array_srt = ortho_array_srt_right;
+        ortho_array_work = ortho_array_work_right;
+        n_points = n_points_right;
+        node_id = node_id_right;
+        curr_depth = child_depth;
+        build_tree();
+
+        #pragma omp taskwait
     }
     else {
         pts = left;

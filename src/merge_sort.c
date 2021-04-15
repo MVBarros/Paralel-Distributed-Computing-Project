@@ -3,14 +3,14 @@
 #include <omp.h>
 #include <stdlib.h>
 
-
-//  Left source half is a[ begin:middle-1].
-// Right source half is a[middle:end-1   ].
-// Result is            b[ begin:end-1   ].
-void top_down_merge(double** a, long begin, long middle, long end, double** b)
-{
+/*
+Left source half is a[ begin:middle-1].
+Right source half is a[middle:end-1   ].
+Result is            b[ begin:end-1   ].
+*/
+void top_down_merge(double** a, long begin, long middle, long end, double** b) {
     long i = begin, j = middle;
- 
+
     // While there are elements in the left or right runs...
     for (long k = begin; k < end; k++) {
         // If left run head exists and is <= existing right run head.
@@ -43,35 +43,33 @@ int compare_node(const void* pt1, const void* pt2) {
     }
 }
 
-// Split a[] into 2 runs, sort both runs into b[], merge both runs from b[] to a[]
-// begin is inclusive; end is exclusive (a[end] is not in the set).
-void top_down_split_merge(double** b, long begin, long end, double** a, int depth_atm, int depth_max)
-{
-    if(end - begin <= 1)                      // if run size == 1
-        return;                                 //   consider it sorted
-    // split the run longer than 1 item into halves
-    long middle = (end + begin) / 2; 
-
+/*
+Split a into 2 runs, sort both runs into b, merge both runs from b to a
+*/
+void top_down_split_merge(double** b, long begin, long end, double** a, int depth_atm, int depth_max) {
+    if(end - begin <= 1)
+        return; //already sorted
     if(depth_atm < depth_max){
-        depth_atm +=1;
-        #pragma omp task
+        long middle = (end + begin) / 2;
+        #pragma omp taskgroup
         {
-            top_down_split_merge(a, begin,  middle, b, depth_atm, depth_max);  // sort the left  run
+            #pragma omp task
+            {
+                top_down_split_merge(a, begin,  middle, b, depth_atm + 1, depth_max);  // sort the left run
+            }
+            top_down_split_merge(a, middle,    end, b, depth_atm + 1, depth_max);  // sort the right run
         }
-        top_down_split_merge(a, middle,    end, b, depth_atm, depth_max);  // sort the right run
-        // merge the resulting runs from array b[] into a[]
-        #pragma omp taskwait
+        // merge the resulting runs from array b into a
         top_down_merge(b, begin, middle, end, a);
-    }else{
+    } else {
         qsort(a+begin, end-begin, sizeof(double*), compare_node);
-    }  
-
+    }
 }
 
-
-// Array a[] has the items to sort; array b[] is a work array.
-void merge_sort(double** a, double** b, long n, int depth_max)
-{
+/*
+Array a has the items to sort; array b is a work array.
+*/
+void merge_sort(double** a, double** b, long n, int depth_max) {
     memcpy(b, a, n* sizeof(double*));           // one time copy of a[] to b[]
     top_down_split_merge(b, 0, n, a, 0, depth_max);   // sort data from b[] into a[]
 }
