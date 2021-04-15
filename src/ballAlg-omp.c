@@ -6,6 +6,7 @@
 #include "gen_points.h"
 #include "point_operations.h"
 #include "ball_tree.h"
+#include "merge_sort.h"
 
 int n_dims; // number of dimensions of each point
 
@@ -13,6 +14,7 @@ double **pts; // list of points of the current iteration of the algorithm
 double **ortho_array; // list of ortogonal projections of the points in pts
 double **ortho_array_srt; // list of ortogonal projections of the point in pts to be sorted.
 double **pts_aux; // list of points of the next iteration of the algorithm
+double **ortho_array_work;
 
 long n_points; //number of points in the dataset
 
@@ -33,7 +35,7 @@ int max_depth; // max depth at which point no more tasks are started
 
 int n_threads; // number of threads available to the program
 
-#pragma omp threadprivate(pts,pts_aux,ortho_array, ortho_array_srt, n_points, node_id, curr_depth)
+#pragma omp threadprivate(pts,pts_aux,ortho_array, ortho_array_srt, ortho_array_work, n_points, node_id, curr_depth)
 
 #define LEFT_PARTITION_SIZE(N) ((N) % 2 ? ((N) - 1) / 2 : (N) / 2)
 #define RIGHT_PARTITION_SIZE(N) ((N) % 2 ? ((N) + 1) / 2 : (N) / 2)
@@ -87,7 +89,12 @@ by sorting the projections based on their x coordinate
 */
 double* get_center() {
     memcpy(ortho_array_srt, ortho_array, sizeof(double*) * n_points);
-    qsort(ortho_array_srt, n_points, sizeof(double*), compare_node);
+    if(curr_depth < max_depth){
+        TopDownMergeSort(ortho_array_srt, ortho_array_work, n_points);
+    }else{
+        qsort(ortho_array_srt, n_points, sizeof(double*), compare_node);
+    }
+
 
     if(n_points % 2) { // is odd
         long middle = (n_points - 1) / 2;
@@ -154,12 +161,14 @@ void build_tree() {
     double **pts_aux_left = pts;
     double **ortho_array_left = ortho_array;
     double **ortho_array_srt_left = ortho_array_srt;
+    double **ortho_array_work_left = ortho_array_work;
     long n_points_left = LEFT_PARTITION_SIZE(n_points);
 
     double **right = pts_aux + n_points_left;
     double **pts_aux_right = pts + n_points_left;
     double **ortho_array_right = ortho_array + n_points_left;
     double **ortho_array_srt_right = ortho_array_srt + n_points_left;
+    double **ortho_array_work_right = ortho_array_work + n_points_left;
     long n_points_right = RIGHT_PARTITION_SIZE(n_points);
 
     omp_set_lock(&node_lock);
@@ -178,6 +187,7 @@ void build_tree() {
                 pts_aux = pts_aux_left;
                 ortho_array = ortho_array_left;
                 ortho_array_srt = ortho_array_srt_left;
+                ortho_array_work = ortho_array_work_left;
                 n_points = n_points_left;
                 node_id = node_id_left;
                 curr_depth = child_depth;
@@ -188,6 +198,7 @@ void build_tree() {
             pts_aux = pts_aux_right;
             ortho_array = ortho_array_right;
             ortho_array_srt = ortho_array_srt_right;
+            ortho_array_work = ortho_array_work_right;
             n_points = n_points_right;
             node_id = node_id_right;
             curr_depth = child_depth;
@@ -200,6 +211,7 @@ void build_tree() {
         pts_aux = pts_aux_left;
         ortho_array = ortho_array_left;
         ortho_array_srt = ortho_array_srt_left;
+        ortho_array_work = ortho_array_work_left;
         n_points = n_points_left;
         node_id = node_id_left;
         curr_depth = child_depth;
@@ -209,6 +221,7 @@ void build_tree() {
         pts_aux = pts_aux_right;
         ortho_array = ortho_array_right;
         ortho_array_srt = ortho_array_srt_right;
+        ortho_array_work = ortho_array_work_right;
         n_points = n_points_right;
         node_id = node_id_right;
         curr_depth = child_depth;
@@ -229,6 +242,7 @@ void alloc_memory() {
     n_nodes = (n_points * 2) - 1;
     ortho_array = create_array_pts(n_dims, n_points);
     ortho_array_srt = (double**) malloc(sizeof(double*) * n_points);
+    ortho_array_work = (double**) malloc(sizeof(double*) * n_points);
     pts_aux = (double**) malloc(sizeof(double*) * n_points);
     node_list = (node_ptr) malloc(sizeof(node_t) * n_nodes);
     node_centers = create_array_pts(n_dims, n_nodes);
