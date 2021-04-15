@@ -3,3 +3,4 @@ ballAlg
 ballAlg-omp
 ballQuery
 *.zip
+*.tree
