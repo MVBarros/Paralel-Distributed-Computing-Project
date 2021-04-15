@@ -4,21 +4,21 @@
 #include <stdlib.h>
 
 
-//  Left source half is A[ iBegin:iMiddle-1].
-// Right source half is A[iMiddle:iEnd-1   ].
-// Result is            B[ iBegin:iEnd-1   ].
-void TopDownMerge(double** A, long iBegin, long iMiddle, long iEnd, double** B)
+//  Left source half is a[ begin:middle-1].
+// Right source half is a[middle:end-1   ].
+// Result is            b[ begin:end-1   ].
+void top_down_merge(double** a, long begin, long middle, long end, double** b)
 {
-    long i = iBegin, j = iMiddle;
+    long i = begin, j = middle;
  
     // While there are elements in the left or right runs...
-    for (long k = iBegin; k < iEnd; k++) {
+    for (long k = begin; k < end; k++) {
         // If left run head exists and is <= existing right run head.
-        if (i < iMiddle && (j >= iEnd || A[i][0] <= A[j][0])) {
-            B[k] = A[i];
+        if (i < middle && (j >= end || a[i][0] <= a[j][0])) {
+            b[k] = a[i];
             i = i + 1;
         } else {
-            B[k] = A[j];
+            b[k] = a[j];
             j = j + 1;
         }
     }
@@ -43,31 +43,35 @@ int compare_node(const void* pt1, const void* pt2) {
     }
 }
 
-// Split A[] into 2 runs, sort both runs into B[], merge both runs from B[] to A[]
-// iBegin is inclusive; iEnd is exclusive (A[iEnd] is not in the set).
-void TopDownSplitMerge(double** B, long iBegin, long iEnd, double** A, int depth_atm, int depth_max)
+// Split a[] into 2 runs, sort both runs into b[], merge both runs from b[] to a[]
+// begin is inclusive; end is exclusive (a[end] is not in the set).
+void top_down_split_merge(double** b, long begin, long end, double** a, int depth_atm, int depth_max)
 {
-    if(iEnd - iBegin <= 1)                      // if run size == 1
+    if(end - begin <= 1)                      // if run size == 1
         return;                                 //   consider it sorted
     // split the run longer than 1 item into halves
-    long iMiddle = (iEnd + iBegin) / 2; 
+    long middle = (end + begin) / 2; 
 
     if(depth_atm < depth_max){
-        depth_atm +=1;    
-        TopDownSplitMerge(A, iBegin,  iMiddle, B, depth_atm, depth_max);  // sort the left  run
-        TopDownSplitMerge(A, iMiddle,    iEnd, B, depth_atm, depth_max);  // sort the right run
-        // merge the resulting runs from array B[] into A[]
-        TopDownMerge(B, iBegin, iMiddle, iEnd, A);
+        depth_atm +=1;
+        #pragma omp task
+        {
+            top_down_split_merge(a, begin,  middle, b, depth_atm, depth_max);  // sort the left  run
+        }
+        top_down_split_merge(a, middle,    end, b, depth_atm, depth_max);  // sort the right run
+        // merge the resulting runs from array b[] into a[]
+        #pragma omp taskwait
+        top_down_merge(b, begin, middle, end, a);
     }else{
-        qsort(A+iBegin, iEnd-iBegin, sizeof(double*), compare_node);
+        qsort(a+begin, end-begin, sizeof(double*), compare_node);
     }  
 
 }
 
 
-// Array A[] has the items to sort; array B[] is a work array.
-void TopDownMergeSort(double** A, double** B, long n, int depth_max)
+// Array a[] has the items to sort; array b[] is a work array.
+void merge_sort(double** a, double** b, long n, int depth_max)
 {
-    memcpy(B, A, n* sizeof(double*));           // one time copy of A[] to B[]
-    TopDownSplitMerge(B, 0, n, A, 0, depth_max);   // sort data from B[] into A[]
+    memcpy(b, a, n* sizeof(double*));           // one time copy of a[] to b[]
+    top_down_split_merge(b, 0, n, a, 0, depth_max);   // sort data from b[] into a[]
 }

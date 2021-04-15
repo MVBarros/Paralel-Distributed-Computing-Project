@@ -3,7 +3,7 @@
 
 int compare_node(const void* pt1, const void* pt2);
 
-void TopDownMergeSort(double** A, double** B, long n, int max_depth);
+void merge_sort(double** a, double** b, long n, int max_depth);
 
 
 #endif

@@ -73,7 +73,7 @@ by sorting the projections based on their x coordinate
 double* get_center() {
     memcpy(ortho_array_srt, ortho_array, sizeof(double*) * n_points);
     if(curr_depth < max_depth){
-        TopDownMergeSort(ortho_array_srt, ortho_array_work, n_points, (max_depth-curr_depth));
+        merge_sort(ortho_array_srt, ortho_array_work, n_points, (max_depth-curr_depth));
     }else{
         qsort(ortho_array_srt, n_points, sizeof(double*), compare_node);
     }
