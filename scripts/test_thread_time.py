@@ -5,7 +5,7 @@ import os
 from tabulate import tabulate
 
 if len(sys.argv) < 3:
-    print("Usage: test_thread_time.py <serial_executable> <parallel_executable")
+    print("Usage: test_thread_time.py <serial_executable> <parallel_executable>")
     exit(1)
 
 serial_executable = "./" + str(sys.argv[1])
@@ -17,6 +17,9 @@ num_threads_list = ["1", "2", "4" ,"8"]
 
 alg_args = ['2 5 0',
             '2 8 0',
+            '3 3 3',
+            '5 4 3',
+            '2 6 8',
             '20 1000000 0',
             '3 5000000 0',
             '4 10000000 0',
