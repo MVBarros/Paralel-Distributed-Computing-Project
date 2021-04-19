@@ -55,9 +55,9 @@ void top_down_split_merge(double** b, long begin, long end, double** a, int dept
         {
             #pragma omp task
             {
-                top_down_split_merge(a, begin,  middle, b, depth_atm + 1, depth_max);  // sort the left run
+                top_down_split_merge(a, begin, middle, b, depth_atm + 1, depth_max);  // sort the left run
             }
-            top_down_split_merge(a, middle,    end, b, depth_atm + 1, depth_max);  // sort the right run
+            top_down_split_merge(a, middle, end, b, depth_atm + 1, depth_max);  // sort the right run
         }
         // merge the resulting runs from array b into a
         top_down_merge(b, begin, middle, end, a);

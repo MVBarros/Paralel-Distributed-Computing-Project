@@ -31,7 +31,7 @@ double** thread_ortho_tmps; //ortho_tmp point for each thread to use when comput
 double** thread_basubs; // point containing b-a for the orthogonal projections
 
 int curr_depth; // current depth of the algorithm
-int max_depth; // max depth at which point no more tasks are started
+int max_depth; // max depth at which point no more tasks are started (the number of tasks created will be 2^max_depth)
 
 int n_threads; // number of threads available to the program
 
@@ -39,6 +39,8 @@ int n_threads; // number of threads available to the program
 
 #define LEFT_PARTITION_SIZE(N) ((N) % 2 ? ((N) - 1) / 2 : (N) / 2)
 #define RIGHT_PARTITION_SIZE(N) ((N) % 2 ? ((N) + 1) / 2 : (N) / 2)
+
+#define IS_POWER_OF_TWO(N) ((N & (N - 1)) == 0)
 
 /*
 Returns the point in pts furthest away from point p
@@ -227,7 +229,13 @@ void alloc_memory() {
     pts_aux = (double**) malloc(sizeof(double*) * n_points);
     node_list = (node_ptr) malloc(sizeof(node_t) * n_nodes);
     node_centers = create_array_pts(n_dims, n_nodes);
-    max_depth = (int) ceil(log2(omp_get_max_threads())) + 1;
+    if (IS_POWER_OF_TWO(n_threads)) {
+        //evenly distribute one task per thread
+        max_depth = (int) log2(n_threads);
+    } else {
+        // some threads will have more tasks than others, ensure each thread gets at least two tasks, some may get 3
+        max_depth = (int) ceil(log2(n_threads)) + 1;
+    }
     curr_depth = 0;
     omp_init_lock(&node_lock);
 }
