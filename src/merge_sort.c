@@ -49,7 +49,6 @@ Split a into 2 runs, sort both runs into b, merge both runs from b to a
 void top_down_split_merge(double** b, long begin, long end, double** a, int depth_atm, int depth_max) {
     if(end - begin <= 1)
         return; //already sorted
-    int x =0, y = 0;
     if(depth_atm < depth_max){
         long middle = (end + begin) / 2;
         #pragma omp taskgroup
