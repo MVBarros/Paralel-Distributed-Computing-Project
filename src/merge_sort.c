@@ -52,20 +52,16 @@ void top_down_split_merge(double** b, long begin, long end, double** a, int dept
     int x =0, y = 0;
     if(depth_atm < depth_max){
         long middle = (end + begin) / 2;
-        #pragma omp task
+        #pragma omp taskgroup
         {
-            top_down_split_merge(a, begin,  middle, b, depth_atm + 1, depth_max);  // sort the left run
-        }
-        #pragma omp task
-        {
+            #pragma omp task
+            {
+                top_down_split_merge(a, begin,  middle, b, depth_atm + 1, depth_max);  // sort the left run
+            }
             top_down_split_merge(a, middle,    end, b, depth_atm + 1, depth_max);  // sort the right run
-
         }
         // merge the resulting runs from array b into a
-        #pragma omp taskwait
-        {
-            top_down_merge(b, begin, middle, end, a);
-        }      
+        top_down_merge(b, begin, middle, end, a);
     } else {
         qsort(a+begin, end-begin, sizeof(double*), compare_node);
     }

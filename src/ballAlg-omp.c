@@ -176,19 +176,16 @@ void build_tree() {
             build_tree();
         }
 
-        #pragma omp task
-        {
-            pts = right;
-            pts_aux = pts_aux_right;
-            ortho_array = ortho_array_right;
-            ortho_array_srt = ortho_array_srt_right;
-            ortho_array_work = ortho_array_work_right;
-            n_points = n_points_right;
-            node_id = node_id_right;
-            curr_depth = child_depth;
-            build_tree();
-        }
-        
+        // Can continue in current thread
+        pts = right;
+        pts_aux = pts_aux_right;
+        ortho_array = ortho_array_right;
+        ortho_array_srt = ortho_array_srt_right;
+        ortho_array_work = ortho_array_work_right;
+        n_points = n_points_right;
+        node_id = node_id_right;
+        curr_depth = child_depth;
+        build_tree();
     }
     else {
         pts = left;
