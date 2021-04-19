@@ -3,6 +3,6 @@ do
 	for n in 1 2 4 8
 	do
 		export OMP_NUM_THREADS="${n}"
-		python test_runner.py ../src/ballAlg-omp
+		python3 test_runner.py ../src/ballAlg-omp
 	done
 done
