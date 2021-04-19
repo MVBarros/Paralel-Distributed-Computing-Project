@@ -1,8 +1,10 @@
 set term svg
 set output "omp.svg"
 set title 'Execution time graph'
-set xlabel 'Number of threads'
-set xtics (1, 2, 4)
+set xlabel 'Number of threads (logarithmic scale)'
+set border 3
+set tics nomirror
+set logscale x 2
 set ylabel 'execution time (seconds)'
 
 plot 'omp.data' using 1:2 with linespoints title '20 1000000 0', \
