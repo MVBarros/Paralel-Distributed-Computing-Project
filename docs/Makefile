@@ -1,5 +1,4 @@
-
-.PHONY: omp
+.PHONY: omp clean
 
 omp:
 	make zip -C ../src
