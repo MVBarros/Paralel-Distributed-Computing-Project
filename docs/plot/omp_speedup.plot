@@ -1,6 +1,7 @@
 set term svg
+set key left
 set output "omp_speedup.svg"
-set title 'Execution time graph'
+set title 'Speedup graph'
 set xlabel 'Number of threads (logarithmic scale)'
 set border 3
 set tics nomirror
