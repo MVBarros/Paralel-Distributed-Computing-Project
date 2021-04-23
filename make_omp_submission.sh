@@ -1,3 +1,8 @@
-make zip -C src
-mv src/g29omp.zip .
-zip -u g29omp.zip docs/g29report.pdf
+rm g29omp.zip
+mkdir g29omp
+cp src/*.c g29omp
+cp src/*.h g29omp
+cp src/Makefile g29omp
+cp docs/g29report.pdf g29omp
+zip g29omp.zip g29omp/*
+rm g29omp -r
