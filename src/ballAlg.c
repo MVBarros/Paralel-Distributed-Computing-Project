@@ -193,7 +193,7 @@ int main(int argc, char** argv) {
     alloc_memory();
     build_tree();
     exec_time += omp_get_wtime();
-    fprintf(stderr, "%.2lf\n", exec_time);
+    fprintf(stderr, "%.1lf\n", exec_time);
     printf("%d %ld\n", n_dims, n_nodes);
     dump_tree();
 }

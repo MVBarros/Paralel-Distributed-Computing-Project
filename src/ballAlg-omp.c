@@ -253,7 +253,7 @@ int main(int argc, char** argv) {
         #pragma omp taskwait
     }
     exec_time += omp_get_wtime();
-    fprintf(stderr, "%.2lf\n", exec_time);
+    fprintf(stderr, "%.1lf\n", exec_time);
     printf("%d %ld\n", n_dims, n_nodes);
     dump_tree();
 }
