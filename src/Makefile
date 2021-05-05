@@ -1,6 +1,9 @@
 # C compiler to use
 CC = gcc
 
+# C compiler for MPI
+MPICC = mpicc
+
 # Flags for the compiler
 CFLAGS = -O3 -Wall
 
@@ -9,9 +12,12 @@ LDFLAGS = -lm
 
 .PHONY: all clean zip
 
-all: ballAlg ballQuery
+all: ballAlg ballAlg-mpi ballQuery
 
-ballAlg: ballAlg.c gen_points.o point_operations.o ball_tree.o 
+ballAlg-mpi: ballAlg-mpi.c gen_points.o point_operations.o ball_tree.o
+	$(MPICC) $(CFLAGS) -fopenmp -o $@ $^ ${LDFLAGS}
+
+ballAlg: ballAlg.c gen_points.o point_operations.o ball_tree.o
 	$(CC) $(CFLAGS) -fopenmp -o $@ $^ ${LDFLAGS}
 
 ball_tree.o: ball_tree.c
@@ -27,7 +33,7 @@ ballQuery: ballQuery.c
 	$(CC) $(CFLAGS) -o $@ $^ ${LDFLAGS}
 
 clean:
-	@rm -f ballAlg ballQuery 
+	@rm -f ballAlg ballAlg-mpi ballQuery
 	@rm -f *.o
 	@rm -f *.zip
 
