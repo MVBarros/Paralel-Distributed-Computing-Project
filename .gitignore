@@ -1,6 +1,7 @@
 *.o
 ballAlg
 ballAlg-omp
+ballAlg-mpi
 ballQuery
 *.zip
 *.tree
