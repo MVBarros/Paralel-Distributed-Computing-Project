@@ -210,15 +210,14 @@ int main(int argc, char** argv) {
     pts = get_points(argc, argv, &n_dims, &n_points_global);
     alloc_memory();
     /*
-    alloc_memory();
     build_tree();
     */
 
     exec_time += omp_get_wtime();
-    /*
-    fprintf(stderr, "%.1lf\n", exec_time);
-    printf("%d %ld\n", n_dims, n_nodes);
+    if (!rank) {
+        fprintf(stderr, "%.1lf\n", exec_time);
+        printf("%d %ld\n", n_dims, n_nodes);
+    }
     dump_tree();
-    */
     MPI_Finalize();
 }

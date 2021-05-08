@@ -3,7 +3,7 @@
 #include "ball_tree.h"
 #include "point_operations.h"
 
-extern int n_nodes;
+extern long node_counter;
 extern node_ptr node_list;
 
 
@@ -24,7 +24,7 @@ void print_node(node_ptr node) {
 }
 
 void dump_tree() {
-    for (long i = 0; i < n_nodes; i++) {
+    for (long i = 0; i < node_counter; i++) {
         print_node(&node_list[i]);
     }
 }
