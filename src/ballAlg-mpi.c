@@ -7,6 +7,7 @@
 #include "gen_points.h"
 #include "point_operations.h"
 #include "ball_tree.h"
+#include "macros.h"
 
 int n_dims; // number of dimensions of each point
 
@@ -181,12 +182,19 @@ void build_tree() {
 }
 
 void alloc_memory() {
-    n_nodes = (n_points_local * 2) - 1;
-    ortho_array = create_array_pts(n_dims, n_points_local);
-    ortho_array_srt = (double**) malloc(sizeof(double*) * n_points_local);
+    long n_points_ceil = (long) (ceil((double) (n_points_global) / (double) (n_procs)));
+
+    n_points_local = BLOCK_SIZE(rank, n_procs, n_points_global);
+    n_nodes = (n_points_global * 2) - 1;
+
+    pts_aux = (double**) malloc(sizeof(double*) * n_points_ceil);
+
+    ortho_array = create_array_pts(n_dims, n_points_ceil);
+    ortho_array_srt = (double**) malloc(sizeof(double*) * n_points_ceil);
+
     basub = (double*) malloc(sizeof(double) * n_dims);
     ortho_tmp = (double*) malloc(sizeof(double) * n_dims);
-    pts_aux = (double**) malloc(sizeof(double*) * n_points_local);
+
     node_list = (node_ptr) malloc(sizeof(node_t) * n_nodes);
     node_centers = create_array_pts(n_dims, n_nodes);
 }
@@ -200,7 +208,7 @@ int main(int argc, char** argv) {
     MPI_Comm_size (MPI_COMM_WORLD, &n_procs);
 
     pts = get_points(argc, argv, &n_dims, &n_points_global);
-
+    alloc_memory();
     /*
     alloc_memory();
     build_tree();
