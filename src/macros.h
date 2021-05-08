@@ -9,4 +9,7 @@
 #define MAX(X,Y) (X > Y ? X : Y)
 #define MIN(X,Y) (X < Y ? X : Y)
 
+#define LEFT_PARTITION_SIZE(N) ((N) % 2 ? ((N) - 1) / 2 : (N) / 2)
+#define RIGHT_PARTITION_SIZE(N) ((N) % 2 ? ((N) + 1) / 2 : (N) / 2)
+
 #endif
