@@ -1,8 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+#include <mpi.h>
 #include "gen_points.h"
+#include "macros.h"
 
 #define RANGE 10
+
+extern int n_procs;
+extern int rank;
 
 extern void print_point(double *, int);
 
@@ -52,16 +58,20 @@ double **get_points(int argc, char *argv[], int *n_dims, long *np)
     seed = atoi(argv[3]);
     srandom(seed);
 
-    pt_arr = (double **) create_array_pts(*n_dims, *np);
+    long np_local = BLOCK_SIZE(rank, n_procs, *np);
+    long low = BLOCK_LOW(rank, n_procs, *np);
 
-    for(i = 0; i < *np; i++)
+    pt_arr = (double **) create_array_pts(*n_dims, (long) (ceil((double) (*np) / (double) (n_procs)))); //Overfit just in case
+
+    for(i = 0; i < low; i++) {
+        for(j = 0; j < *n_dims; j++) {
+            random(); //advance random generator
+        }
+    }
+
+    for(i = 0; i < np_local; i++)
         for(j = 0; j < *n_dims; j++)
             pt_arr[i][j] = RANGE * ((double) random()) / RAND_MAX;
-
-#ifdef DEBUG
-    for(i = 0; i < *np; i++)
-        print_point(pt_arr[i], *n_dims);
-#endif
 
     return pt_arr;
 }
