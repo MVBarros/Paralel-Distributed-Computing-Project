@@ -131,6 +131,12 @@ double* get_center() {
     return node_centers[node_id];
 }
 
+// TODO Clara get the nth point in the global set
+// The owner broadcasts, the rest receives
+void get_point(int n, double* out) {
+
+}
+
 /*
 Computes the orthogonal projections of points in pts onto line defined by b-a
 */
@@ -145,6 +151,7 @@ void calc_orthogonal_projections(double* a, double* b) {
 Places each point in pts in partition left or right by comparing the x coordinate
 of its orthogonal projection with the x coordinate of the center point
 */
+// TODO Bras rewrite, now we do not know how many points will be in left and right
 void fill_partitions(double** left, double** right, double* center) {
     long l = 0;
     long r = 0;
