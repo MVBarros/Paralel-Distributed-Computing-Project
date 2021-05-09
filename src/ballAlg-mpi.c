@@ -185,6 +185,8 @@ Get the points currently held by other processes
 */
 void get_other_processes_n_points() {
     long my_points = n_points_local;
+
+    /*Broadcast all-to-all the number of points held locally*/
     MPI_Allgather(
         &my_points, //the address of the data the current process is sending
         1, //number of data elements sent
