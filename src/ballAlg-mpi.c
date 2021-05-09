@@ -44,8 +44,9 @@ double **furthest_away_point_buffer;    /* buffer storing the local furthest awa
 double *a;                              /* furthest away point from the first point in the globalset                         */
 double *b;                              /* furthest away point from a in the global set                                      */
 double *furthest_from_center;           /* furthest away point from center in the global set                                 */
+
 /*
-Returns the point in pts furthest away from point p
+Returns the point in the global point set that is furthest away from point p
 */
 void get_furthest_away_point(double *p, double *out) {
     double local_max_distance = 0.0;
