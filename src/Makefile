@@ -27,7 +27,7 @@ gen_points.o: gen_points.c
 	$(CC) $(CFLAGS) -c $^
 
 gen_points_mpi.o: gen_points_mpi.c
-	$(CC) $(CFLAGS) -c $^ ${LDFLAGS}
+	$(MPICC) $(CFLAGS) -c $^ ${LDFLAGS}
 
 point_operations.o: point_operations.c
 	$(CC) $(CFLAGS) -c $^
