@@ -178,6 +178,34 @@ void build_tree() {
     node->right_id = node_id_right;
 }
 
+void get_other_processes_n_points() {
+
+}
+
+void get_first_point() {
+
+}
+
+void build_tree_mpi() {
+
+    /**/
+    get_other_processes_n_points();
+
+    get_first_point();
+
+    //get_furthest_away_point of first point is a
+
+    //get_furthest_away_point of a is b
+
+    //calc_orthogonal_projections
+
+    //sort projections
+
+    //calc left and right points
+
+
+}
+
 void alloc_memory() {
     long n_points_ceil = (long) (ceil((double) (n_points_global) / (double) (n_procs)));
 
@@ -206,6 +234,8 @@ int main(int argc, char** argv) {
 
     pts = get_points(argc, argv, &n_dims, &n_points_global);
     alloc_memory();
+
+    build_tree_mpi();
     /*
     build_tree();
     */
