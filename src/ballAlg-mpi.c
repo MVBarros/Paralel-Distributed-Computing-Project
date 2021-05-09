@@ -192,7 +192,7 @@ void get_other_processes_n_points() {
         1, //number of data elements sent
         MPI_LONG, //type of data element sent
         processes_n_points, //the address where the current process stores the data received
-        1, //number of dta elements sent by each process
+        1, //number of data elements sent by each process
         MPI_LONG, //type of data element received
         MPI_COMM_WORLD //sending and receiving to all processes
     );
