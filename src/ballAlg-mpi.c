@@ -16,6 +16,8 @@ double **ortho_array; // list of ortogonal projections of the points in pts
 double **ortho_array_srt; //list of ortogonal projections of the point in pts to be sorted.
 double **pts_aux; // list of points of the next iteration of the algorithm
 
+double *first_point; // first point received from process with MPI rank 0
+
 long n_points_local; //number of points in the dataset present at this process
 long n_points_global; //number of points in the dataset present at all processes
 
@@ -197,13 +199,30 @@ void get_other_processes_n_points() {
         MPI_COMM_WORLD //sending and receiving to all processes
     );
 
-    for(int i = 0; i < n_procs; i ++) {
+    for(int i = 0; i < n_procs; i++) {
         printf("%d processes_n_points[%d]=%ld\n", rank, i, processes_n_points[i]);
     }
 }
 
 void get_first_point() {
+    int root = 0;
 
+    for(int i = 0; i < n_procs; i++) {
+	if(processes_n_points[i]!=0) {
+	    root = i;
+	    break;
+	}
+    }
+
+    if(rank==root) {
+        MPI_Bcast(pts[0], n_dims, MPI_DOUBLE, root, MPI_COMM_WORLD);
+    }
+    else {
+	MPI_Bcast(first_point, n_dims, MPI_DOUBLE, root, MPI_COMM_WORLD);
+    }
+    
+    printf("%d ", rank);
+    print_point(first_point);
 }
 
 void build_tree_mpi() {
@@ -243,6 +262,8 @@ void alloc_memory() {
     node_list = (node_ptr) malloc(sizeof(node_t) * n_nodes);
     node_centers = create_array_pts(n_dims, n_nodes);
     processes_n_points = (long*) malloc(sizeof(long) * n_procs);
+
+    first_point = (double*) malloc(sizeof(double) * n_dims);
 }
 
 int main(int argc, char** argv) {
