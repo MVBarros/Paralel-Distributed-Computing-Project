@@ -51,7 +51,7 @@ void get_furthest_away_point(double *p, double *out) {
     double local_max_distance = 0.0;
     double *local_furthest_point = p;
 
-    /*compute local furthest point*/
+    /*compute local furthest point from p*/
     for(long i = 0; i < n_points_local; i++){
         double curr_distance = distance(p, pts[i]);
         if(curr_distance > local_max_distance){
@@ -60,6 +60,7 @@ void get_furthest_away_point(double *p, double *out) {
         }
     }
 
+    /*get local furthest point from p of all processes*/
     MPI_Allgather(
                 local_furthest_point,             /* send local furthest point to all other processes */
                 n_dims,                           /* local furthest point has n_dims elements  */
@@ -73,6 +74,7 @@ void get_furthest_away_point(double *p, double *out) {
     double global_max_distance = 0.0;
     double *global_furthest_point = p;
 
+    /*of those, compute the furthest away from p*/
     for(int i = 0; i < n_procs; i++) {
         double curr_distance = distance(p, furthest_away_point_buffer[i]);
         if(curr_distance > global_max_distance){
