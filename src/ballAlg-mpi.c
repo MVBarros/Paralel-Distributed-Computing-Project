@@ -178,23 +178,12 @@ void calc_orthogonal_projections(double* a, double* b) {
 }
 
 /*
-Places each point in pts in partition left or right by comparing the x coordinate
-of its orthogonal projection with the x coordinate of the center point
+Copies into pts_aux first the points whose projection is left of center
+and then the points whose projection is right or equal to center
+sets n_points_left and n_points_right to the respective values
 */
-// TODO Bras rewrite, now we do not know how many points will be in left and right
-void mpi_fill_partitions(double** left, double** right, double* center) {
-    long l = 0;
-    long r = 0;
-    for(long i = 0; i < n_points_local; i++) {
-        if(ortho_array[i][0] < center[0]) {
-            left[l] = pts[i];
-            l++;
-        }
-        else {
-            right[r] = pts[i];
-            r++;
-        }
-    }
+void mpi_fill_partitions(double* center, long *n_points_left, long *n_points_right) {
+    //TODO Jose Eduardo
 }
 
 
@@ -283,9 +272,10 @@ void mpi_build_node() {
 
     calc_orthogonal_projections(a, b);
 
-    //sort projections
-
-    //calc left and right points
+    /*
+    double *center = mpi_get_center();
+    double radius = mpi_get_radius();
+    */
 
 
 }
@@ -331,7 +321,7 @@ void alloc_memory() {
     n_points_local = BLOCK_SIZE(rank, n_procs, n_points_global);
     n_nodes = (n_points_global * 2) - 1;
 
-    pts_aux = (double**) malloc(sizeof(double*) * n_points_ceil);
+    pts_aux = create_array_pts(n_dims, max_n_points);
 
     ortho_array = create_array_pts(n_dims, n_points_ceil);
     ortho_array_srt = (double**) malloc(sizeof(double*) * n_points_ceil);
