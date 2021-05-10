@@ -67,11 +67,20 @@ void sub_points(double* a, double* b, double* out){
 }
 
 /*
-* Returns a copy of point p
+* Copies point p into point copy
 */
 void copy_point(double* p, double* copy) {
     for(int i = 0; i < n_dims; i++){
         copy[i] = p[i];
+    }
+}
+
+/*
+* Copies n_points of list a into list b
+*/
+void copy_point_list(double **a, double **b, long n_points) {
+    for(long i = 0; i < n_points; i++) {
+        copy_point(a[i], b[i]);
     }
 }
 
