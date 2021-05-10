@@ -12,6 +12,11 @@ runner = str(sys.argv[1])
 executable =  str(sys.argv[2])
 n_threads = str(sys.argv[3])
 
+flags = ["-n".append(n_threads)]
+if (runner == "srun") {
+    flags.append["--ntasks-per-node=1"]
+}
+
 alg_args = ['2 5 0',
             '2 8 0',
             '3 3 3',
@@ -59,7 +64,7 @@ if not os.path.exists('trees'):
 
 for alg_arg, tree_file, query_arg, expected_out in zip(alg_args, tree_files, query_args, query_outputs):
     with open(tree_file, 'w+') as tree_fd:
-        subprocess.run([runner, "-n", n_threads, executable, *alg_arg], stdout=tree_fd, stderr=subprocess.DEVNULL)
+        subprocess.run([runner, *flags, executable, *alg_arg], stdout=tree_fd, stderr=subprocess.DEVNULL)
     result = subprocess.run(['../src/ballQuery', *query_arg], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
     if result.stdout.strip() == expected_out.strip():
         print('.', end='', flush=True)
