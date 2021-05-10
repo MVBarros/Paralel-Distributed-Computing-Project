@@ -188,10 +188,26 @@ and then the points whose projection is right or equal to center
 sets n_points_left and n_points_right to the respective values
 */
 void mpi_fill_partitions(double* center, long *n_points_left, long *n_points_right) {
-    //TODO Jose Eduardo
+    long left_count = 0;
+    long right_count = 0;    
+        
+    for(long i = 0; i < n_points_local; i++) {
+        if(pts[i][0] < center[0]) {      
+            copy_point(pts[i], pts_aux[left_count]);                  
+            left_count++;                                        
+        }
+    }
+
+    for(long i = 0; i < n_points_local; i++) {
+        if(pts[i][0] >= center[0]) {   
+            copy_point(pts[i], pts_aux[left_count+right_count]);
+            right_count++;                
+        }
+    }
+
+    *n_points_left = left_count;
+    *n_points_right = right_count;
 }
-
-
 /*
 Get the number of points currently held by each process
 */
