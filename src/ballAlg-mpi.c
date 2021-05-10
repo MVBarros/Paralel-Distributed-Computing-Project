@@ -101,9 +101,11 @@ double mpi_get_radius(double* center) {
 }
 
 
-/*  Looks for the nth point in all processes,
-    once it is found the process which contains it will broadcast it
-    and the remaining will wait for such point*/
+/*
+Looks for the nth point in all processes,
+once it is found the process which contains it will broadcast it
+and the remaining will receive it
+*/
 void mpi_get_point(double **pts, long n, double* out) {
     long count = 0;
     long k = 0;
