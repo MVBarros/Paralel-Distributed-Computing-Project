@@ -4,6 +4,7 @@
 #include <math.h>
 #include <string.h>
 #include <mpi.h>
+#include<unistd.h>
 #include "gen_points.h"
 #include "point_operations.h"
 #include "ball_tree.h"
@@ -48,6 +49,7 @@ double *furthest_from_center;           /* furthest away point from center in th
 double *median_left_point;              /* rightmost point in the global point set that is left of the median                */
 double *median_right_point;             /* leftmost point in the global point set that is right of the median                */
 
+char token;                             /* used to notify the next process when printing the tree                            */
 /*
 Returns the point in the global point set that is furthest away from point p
 */
@@ -98,7 +100,7 @@ double mpi_get_radius(double* center) {
 }
 
 
-/*  Looks for the nth point in all processes, 
+/*  Looks for the nth point in all processes,
     once it is found the process which contains it will broadcast it
     and the remaining will wait for such point*/
 void mpi_get_point(double **pts, long n, double* out) {
@@ -106,7 +108,7 @@ void mpi_get_point(double **pts, long n, double* out) {
     long k = 0;
     for(int i = 0; i < n_procs; i++){
         if(count <= n && processes_n_points[i]+count > n ){
-            k = n - count;            
+            k = n - count;
             if(k == rank){
                 /*send*/
                 MPI_Bcast(
@@ -132,7 +134,7 @@ void mpi_get_point(double **pts, long n, double* out) {
             count += processes_n_points[i];
         }
     }
-    
+
 
 }
 
@@ -288,6 +290,26 @@ void mpi_build_node() {
 
 }
 
+/*
+Print the local tree at each process.
+Each process waits for the process with rank lower than him to finish before printing
+*/
+void mpi_dump_tree() {
+    /*wait for the previous process to print its tree*/
+    if (rank) {
+        MPI_Recv(&token, 1, MPI_CHAR, rank -1, MPI_TAG_DUMP_TREE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    }
+    sleep(1); //give time for the previous process to flush his stdout
+
+    dump_tree();
+    fflush(stdout);
+
+    /*tell the next process to print its tree*/
+    if (rank != n_procs - 1) {
+        MPI_Send(&token, 1, MPI_CHAR, rank + 1, MPI_TAG_DUMP_TREE, MPI_COMM_WORLD);
+    }
+}
+
 void alloc_memory() {
     long n_points_ceil = (long) (ceil((double) (n_points_global) / (double) (n_procs)));
 
@@ -311,7 +333,9 @@ void alloc_memory() {
     furthest_away_point_buffer = create_array_pts(n_dims, n_procs);
     a = (double*) malloc(sizeof(double) * n_dims);
     b = (double*) malloc(sizeof(double) * n_dims);
+
     furthest_from_center = (double*) malloc(sizeof(double) * n_dims);
+    
     median_left_point = (double*) malloc(sizeof(double) * n_dims);
     median_right_point = (double*) malloc(sizeof(double) * n_dims);
 }
@@ -328,17 +352,15 @@ int main(int argc, char** argv) {
     alloc_memory();
 
     mpi_build_node();
-    /*
-    build_tree();
-    */
 
+    MPI_Barrier(MPI_COMM_WORLD);
     exec_time += omp_get_wtime();
-    /*
+
     if (!rank) {
         fprintf(stderr, "%.1lf\n", exec_time);
         printf("%d %ld\n", n_dims, n_nodes);
     }
-    dump_tree();
-    */
+    mpi_dump_tree();
+
     MPI_Finalize();
 }
