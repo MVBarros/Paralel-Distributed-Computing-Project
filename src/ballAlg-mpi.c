@@ -99,7 +99,38 @@ double mpi_get_radius(double* center) {
 
 // TODO Clara get the nth point in the global pts
 // The owner broadcasts, the rest receives
-void mpi_get_point(double **pts, int n, double* out) {
+void mpi_get_point(double **pts, long n, double* out) {
+    long count = 0;
+    long k = 0;
+    for(int i = 0; i < n_procs; i++){
+        if(count <= n && processes_n_points[i]+count > n ){
+            k = n - count;            
+            if(k == rank){
+                /*send*/
+                MPI_Bcast(
+                        pts[k],             /*the address of the data the current process is sending*/
+                        n_dims,             /*the number of data elements sent*/
+                        MPI_DOUBLE,         /*type of data elements sent*/
+                        i,                  /*rank of the process sending the data*/
+                        MPI_COMM_WORLD      /*broadcast to processes*/
+                );
+                copy_point(pts[k], out);
+            }else{
+                /*receive*/
+                MPI_Bcast(
+                    out,                /*the address of the data the current process is sending*/
+                    n_dims,             /*the number of data elements sent*/
+                    MPI_DOUBLE,         /*type of data elements sent*/
+                    i,                  /*rank of the process sending the data*/
+                    MPI_COMM_WORLD      /*broadcast to processes*/
+                );
+            }
+            break;
+        }else{
+            count += processes_n_points[i];
+        }
+    }
+    
 
 }
 
