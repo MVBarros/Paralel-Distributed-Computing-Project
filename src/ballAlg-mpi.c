@@ -49,7 +49,7 @@ double *furthest_from_center;           /* furthest away point from center in th
 double *median_left_point;              /* rightmost point in the global point set that is left of the median                */
 double *median_right_point;             /* leftmost point in the global point set that is right of the median                */
 
-char token;                             /* used to notify the next process when printing the tree                            */
+char dump_tree_token;                   /* used to notify the next process when printing the tree                            */
 /*
 Returns the point in the global point set that is furthest away from point p
 */
@@ -292,12 +292,20 @@ void mpi_build_node() {
 
 /*
 Print the local tree at each process.
-Each process waits for the process with rank lower than him to finish before printing
+Each process waits for the processes with lower rank to finish before printing
 */
 void mpi_dump_tree() {
     /*wait for the previous process to print its tree*/
     if (rank) {
-        MPI_Recv(&token, 1, MPI_CHAR, rank -1, MPI_TAG_DUMP_TREE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(
+                &dump_tree_token,   /* address where the token is received                      */
+                1,                  /* token is one element                                     */
+                MPI_CHAR,           /* of type char                                             */
+                rank - 1,           /* from the process with current rank - 1                   */
+                MPI_TAG_DUMP_TREE,  /* unique tag identifying what i am receiving               */
+                MPI_COMM_WORLD,     /* global communicator                                      */
+                MPI_STATUS_IGNORE   /* don't care about the return status                       */
+        );
     }
     sleep(1); //give time for the previous process to flush his stdout
 
@@ -306,7 +314,14 @@ void mpi_dump_tree() {
 
     /*tell the next process to print its tree*/
     if (rank != n_procs - 1) {
-        MPI_Send(&token, 1, MPI_CHAR, rank + 1, MPI_TAG_DUMP_TREE, MPI_COMM_WORLD);
+        MPI_Send(
+                &dump_tree_token,   /* address of the sent token                                */
+                1,                  /* token is one element                                     */
+                MPI_CHAR,           /* of type char                                             */
+                rank + 1,           /* sent to the process with current rank + 1                */
+                MPI_TAG_DUMP_TREE,  /* unique tag identifying what i am sending                 */
+                MPI_COMM_WORLD      /* global communicator                                      */
+        );
     }
 }
 
@@ -335,7 +350,7 @@ void alloc_memory() {
     b = (double*) malloc(sizeof(double) * n_dims);
 
     furthest_from_center = (double*) malloc(sizeof(double) * n_dims);
-    
+
     median_left_point = (double*) malloc(sizeof(double) * n_dims);
     median_right_point = (double*) malloc(sizeof(double) * n_dims);
 }
