@@ -307,11 +307,7 @@ void build_node_mpi() {
     print_point(b);
 #endif
 
-    //get_furthest_away_point of first point is a
-
-    //get_furthest_away_point of a is b
-
-    //calc_orthogonal_projections
+    calc_orthogonal_projections(a, b);
 
     //sort projections
 
