@@ -291,13 +291,13 @@ void mpi_dump_tree() {
     /*wait for the previous process to print its tree*/
     if (rank) {
         MPI_Recv(
-                &dump_tree_token,   /* address where the token is received                      */
-                1,                  /* token is one element                                     */
-                MPI_CHAR,           /* of type char                                             */
-                rank - 1,           /* from the process with current rank - 1                   */
-                MPI_TAG_DUMP_TREE,  /* unique tag identifying what i am receiving               */
-                MPI_COMM_WORLD,     /* global communicator                                      */
-                MPI_STATUS_IGNORE   /* don't care about the return status                       */
+                &dump_tree_token,   /* address where the token is received */
+                1,                  /* token is one element */
+                MPI_CHAR,           /* of type char */
+                rank - 1,           /* from the process with current rank - 1 */
+                MPI_TAG_DUMP_TREE,  /* unique tag identifying what i am receiving */
+                MPI_COMM_WORLD,     /* global communicator */
+                MPI_STATUS_IGNORE   /* don't care about the return status */
         );
     }
     sleep(1); //give time for the previous process to flush his stdout
@@ -308,12 +308,12 @@ void mpi_dump_tree() {
     /*tell the next process to print its tree*/
     if (rank != n_procs - 1) {
         MPI_Send(
-                &dump_tree_token,   /* address of the sent token                                */
-                1,                  /* token is one element                                     */
-                MPI_CHAR,           /* of type char                                             */
-                rank + 1,           /* sent to the process with current rank + 1                */
-                MPI_TAG_DUMP_TREE,  /* unique tag identifying what i am sending                 */
-                MPI_COMM_WORLD      /* global communicator                                      */
+                &dump_tree_token,   /* address of the sent token */
+                1,                  /* token is one element */
+                MPI_CHAR,           /* of type char */
+                rank + 1,           /* sent to the process with current rank + 1 */
+                MPI_TAG_DUMP_TREE,  /* unique tag identifying what i am sending */
+                MPI_COMM_WORLD      /* global communicator */
         );
     }
 }
