@@ -52,6 +52,8 @@ double *median_right_point;             /* leftmost point in the global point se
 
 char dump_tree_token;                   /* used to notify the next process when printing the tree                            */
 
+double **sorted_projections;            /* list of sorted orthogonal projections                                             */
+
 /*
 Returns the point in the global point set that is furthest away from point p
 */
@@ -101,6 +103,33 @@ double mpi_get_radius(double* center) {
     return sqrt(distance(furthest_from_center, center));
 }
 
+/*
+Process root broadcast his local point at index i of pts to all other processes.
+That point is copied onto out
+*/
+void mpi_broadcast_point(double **pts, long i, int root, double *out) {
+    if(rank == root){
+        /*send*/
+        MPI_Bcast(
+                pts[i],             /*the address of the data the current process is sending*/
+                n_dims,             /*the number of data elements sent*/
+                MPI_DOUBLE,         /*type of data elements sent*/
+                root,               /*rank of the process sending the data*/
+                MPI_COMM_WORLD      /*broadcast to all processes*/
+        );
+        copy_point(pts[i], out);
+    }
+    else{
+        /*receive*/
+        MPI_Bcast(
+                out,                /*the address of the data the current process is receiving*/
+                n_dims,             /*the number of data elements to receive*/
+                MPI_DOUBLE,         /*type of data elements received*/
+                root,               /*rank of the process sending the data*/
+                MPI_COMM_WORLD      /*broadcast to all processes*/
+        );
+    }
+}
 
 /*
 Looks for the nth point in all processes,
@@ -109,37 +138,17 @@ and the remaining will receive it
 */
 void mpi_get_point(double **pts, long n, double* out) {
     long count = 0;
-    long k = 0;
+    long displacement = 0;
     for(int i = 0; i < n_procs; i++){
-        if(count <= n && processes_n_points[i]+count > n ){
-            k = n - count;
-            if(k == rank){
-                /*send*/
-                MPI_Bcast(
-                        pts[k],             /*the address of the data the current process is sending*/
-                        n_dims,             /*the number of data elements sent*/
-                        MPI_DOUBLE,         /*type of data elements sent*/
-                        i,                  /*rank of the process sending the data*/
-                        MPI_COMM_WORLD      /*broadcast to all processes*/
-                );
-                copy_point(pts[k], out);
-            }else{
-                /*receive*/
-                MPI_Bcast(
-                        out,                /*the address of the data the current process is receiving*/
-                        n_dims,             /*the number of data elements to receive*/
-                        MPI_DOUBLE,         /*type of data elements received*/
-                        i,                  /*rank of the process sending the data*/
-                        MPI_COMM_WORLD      /*broadcast to all processes*/
-                );
-            }
+        if(processes_n_points[i] + count > n ){
+            displacement = n - count;
+            mpi_broadcast_point(pts, displacement, i, out);
             break;
-        }else{
+        }
+        else {
             count += processes_n_points[i];
         }
     }
-
-
 }
 
 /*
@@ -149,13 +158,13 @@ by sorting the projections based on their x coordinate
 double* mpi_get_center() {
     double **sorted_points = mpi_projections_sort();
 
-    if(n_points_local % 2) { // is odd
-        long middle = (n_points_local - 1) / 2;
+    if(n_points_global % 2) { // is odd
+        long middle = (n_points_global - 1) / 2;
         mpi_get_point(sorted_points, middle, node_centers[node_counter]);
     }
     else { // is even
-        long first_middle = (n_points_local / 2) - 1;
-        long second_middle = (n_points_local / 2);
+        long first_middle = (n_points_global / 2) - 1;
+        long second_middle = (n_points_global / 2);
         mpi_get_point(sorted_points, first_middle, median_left_point);
         mpi_get_point(sorted_points, second_middle, median_right_point);
         middle_point(median_left_point, median_right_point, node_centers[node_counter]);
@@ -207,49 +216,11 @@ void mpi_get_processes_n_points() {
 #endif
 }
 
-/*
-Returns the first point in the set
-i.e. lower index relative to the initial set
-*/
-double *mpi_get_first_point() {
-    int root = 0;
-    /*first process that owns at least one point */
-    for(int i = 0; i < n_procs; i++) {
-        if(processes_n_points[i] != 0) {
-            root = i;
-            break;
-        }
-    }
-
-    if(rank==root) {
-        /*send*/
-        MPI_Bcast(
-                pts[0],             /*the address of the data the current process is sending*/
-                n_dims,             /*the number of data elements sent*/
-                MPI_DOUBLE,         /*type of data elements sent*/
-                root,               /*rank of the process sending the data*/
-                MPI_COMM_WORLD      /*broadcast to processes*/
-        );
-        return pts[0];
-    }
-    else {
-        /*receive*/
-        MPI_Bcast(
-                first_point,        /*the address of the buffer the data received will be stored into*/
-                n_dims,             /*the number of data elements received*/
-                MPI_DOUBLE,         /*type of data elements received*/
-                root,               /*rank of the process sending the data*/
-                MPI_COMM_WORLD      /*broadcast to processes*/
-        );
-        return first_point;
-    }
-}
-
 void mpi_build_node() {
 
     mpi_get_processes_n_points();
 
-    double* first_point = mpi_get_first_point();
+    mpi_get_point(pts, 0, first_point);
 
 #ifdef DEBUG
     printf("%d first_point=", rank);
@@ -268,10 +239,14 @@ void mpi_build_node() {
 
     calc_orthogonal_projections(a, b);
 
-    /*
     double *center = mpi_get_center();
-    double radius = mpi_get_radius();
-    */
+    double radius = mpi_get_radius(center);
+
+#ifdef DEBUG
+    printf("%d center=", rank);
+    print_point(center);
+    printf("%d radius=%f\n", rank, radius);
+#endif
 
 
 }
@@ -320,7 +295,7 @@ void alloc_memory() {
     pts_aux = create_array_pts(n_dims, n_points_ceil);
 
     ortho_array = create_array_pts(n_dims, n_points_ceil);
-    ortho_array_srt = (double**) malloc(sizeof(double*) * n_points_ceil);
+    ortho_array_srt = (double**) malloc(sizeof(double*) * n_points_global);
 
     basub = (double*) malloc(sizeof(double) * n_dims);
     ortho_tmp = (double*) malloc(sizeof(double) * n_dims);
@@ -339,6 +314,7 @@ void alloc_memory() {
 
     median_left_point = (double*) malloc(sizeof(double) * n_dims);
     median_right_point = (double*) malloc(sizeof(double) * n_dims);
+    sorted_projections = create_array_pts(n_dims, n_points_global); //for now this will store all points (no partition)
 }
 
 int main(int argc, char** argv) {
