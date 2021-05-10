@@ -48,7 +48,7 @@ double *furthest_from_center;           /* furthest away point from center in th
 /*
 Returns the point in the global point set that is furthest away from point p
 */
-void get_furthest_away_point(double *p, double *out) {
+void get_furthest_away_point_mpi(double *p, double *out) {
     double local_max_distance = 0.0;
     double *local_furthest_point = p;
 
@@ -89,37 +89,18 @@ void get_furthest_away_point(double *p, double *out) {
 /*
 Returns the radius of the ball tree node defined by point center
 */
-double get_radius(double* center) {
-    get_furthest_away_point(center, furthest_from_center);
+double get_radius_mpi(double* center) {
+    get_furthest_away_point_mpi(center, furthest_from_center);
     return sqrt(distance(furthest_from_center, center));
-}
-
-/*
-Used for quicksort
-Compares the x coordenate of the two points
-*/
-int compare_node(const void* pt1, const void* pt2) {
-    double* dpt1 = *((double**) pt1);
-    double* dpt2 = *((double**) pt2);
-
-    if(dpt1[0] > dpt2[0]) {
-        return 1;
-    }
-    else if(dpt1[0] < dpt2[0]) {
-        return -1;
-    }
-    else {
-        return 0;
-    }
 }
 
 /*
 Returns the median projection of the dataset
 by sorting the projections based on their x coordinate
 */
-double* get_center() {
+double* get_center_mpi() {
     memcpy(ortho_array_srt, ortho_array, sizeof(double*) * n_points_local);
-    qsort(ortho_array_srt, n_points_local, sizeof(double*), compare_node);
+    qsort(ortho_array_srt, n_points_local, sizeof(double*), compare_point);
 
     if(n_points_local % 2) { // is odd
         long middle = (n_points_local - 1) / 2;
@@ -136,7 +117,7 @@ double* get_center() {
 
 // TODO Clara get the nth point in the global set
 // The owner broadcasts, the rest receives
-void get_point(int n, double* out) {
+void get_point_mpi(int n, double* out) {
 
 }
 
@@ -155,7 +136,7 @@ Places each point in pts in partition left or right by comparing the x coordinat
 of its orthogonal projection with the x coordinate of the center point
 */
 // TODO Bras rewrite, now we do not know how many points will be in left and right
-void fill_partitions(double** left, double** right, double* center) {
+void fill_partitions_mpi(double** left, double** right, double* center) {
     long l = 0;
     long r = 0;
     for(long i = 0; i < n_points_local; i++) {
@@ -170,63 +151,11 @@ void fill_partitions(double** left, double** right, double* center) {
     }
 }
 
-/*void build_tree() {
-    if(n_points_local == 1) {
-        make_node(node_id, pts[0], 0, &node_list[node_id]);
-        return;
-    }
-
-    double* a = get_furthest_away_point(pts[0]);
-    double* b = get_furthest_away_point(a);
-
-    calc_orthogonal_projections(a, b);
-
-    double* center = get_center();
-    double radius = get_radius(center);
-
-    node_ptr node = make_node(node_id, center, radius, &node_list[node_id]);
-
-    double **left = pts_aux;
-    double **pts_aux_left = pts;
-    double **ortho_array_left = ortho_array;
-    double **ortho_array_srt_left = ortho_array_srt;
-    long n_points_local_left = LEFT_PARTITION_SIZE(n_points_local);
-
-    double **right = pts_aux + n_points_local_left;
-    double **pts_aux_right = pts + n_points_local_left;
-    double **ortho_array_right = ortho_array + n_points_local_left;
-    double **ortho_array_srt_right = ortho_array_srt + n_points_local_left;
-    long n_points_local_right = RIGHT_PARTITION_SIZE(n_points_local);
-
-    long node_id_left = ++node_counter;
-    long node_id_right = ++node_counter;
-
-    fill_partitions(left, right, center);
-
-    pts = left;
-    pts_aux = pts_aux_left;
-    ortho_array = ortho_array_left;
-    ortho_array_srt = ortho_array_srt_left;
-    n_points_local = n_points_local_left;
-    node_id = node_id_left;
-    build_tree();
-
-    pts = right;
-    pts_aux = pts_aux_right;
-    ortho_array = ortho_array_right;
-    ortho_array_srt = ortho_array_srt_right;
-    n_points_local = n_points_local_right;
-    node_id = node_id_right;
-    build_tree();
-
-    node->left_id = node_id_left;
-    node->right_id = node_id_right;
-}*/
 
 /*
 Get the number of points currently held by each process
 */
-void get_processes_n_points() {
+void get_processes_n_points_mpi() {
     long my_points = n_points_local;
 
     /*Broadcast all-to-all the number of points held locally*/
@@ -251,7 +180,7 @@ void get_processes_n_points() {
 Returns the first point in the set
 i.e. lower index relative to the initial set
 */
-double *get_first_point() {
+double *get_first_point_mpi() {
     int root = 0;
     /*first process that owns at least one point */
     for(int i = 0; i < n_procs; i++) {
@@ -287,19 +216,18 @@ double *get_first_point() {
 
 void build_node_mpi() {
 
-    /**/
-    get_processes_n_points();
+    get_processes_n_points_mpi();
 
-    double* first_point = get_first_point();
+    double* first_point = get_first_point_mpi();
 
 #ifdef DEBUG
     printf("%d first_point=", rank);
     print_point(first_point);
 #endif
 
-    get_furthest_away_point(first_point, a);
+    get_furthest_away_point_mpi(first_point, a);
 
-    get_furthest_away_point(a, b);
+    get_furthest_away_point_mpi(a, b);
 #ifdef DEBUG
     printf("%d a=", rank);
     print_point(a);

@@ -104,3 +104,22 @@ void middle_point(double* a, double* b, double* out){
         out[i] = (a[i] + b[i]) / 2;
     }
 }
+
+/*
+Used for quicksort
+Compares the x coordenate of the two points
+*/
+int compare_point(const void* pt1, const void* pt2) {
+    double* dpt1 = *((double**) pt1);
+    double* dpt2 = *((double**) pt2);
+
+    if(dpt1[0] > dpt2[0]) {
+        return 1;
+    }
+    else if(dpt1[0] < dpt2[0]) {
+        return -1;
+    }
+    else {
+        return 0;
+    }
+}

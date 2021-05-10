@@ -27,4 +27,7 @@ void middle_point(double* a, double* b, double* out);
 //Returns a copy of point p
 void copy_point(double* p, double* out);
 
+//Compares the x coordenate of the two points
+int compare_point(const void* pt1, const void* pt2);
+
 #endif
