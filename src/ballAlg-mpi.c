@@ -9,6 +9,7 @@
 #include "point_operations.h"
 #include "ball_tree.h"
 #include "macros.h"
+#include "sort-mpi.h"
 
 //#define DEBUG
 //remove the above comment to enable debug messages
@@ -142,19 +143,11 @@ void mpi_get_point(double **pts, long n, double* out) {
 }
 
 /*
-Dummy for now
-*/
-double **distributed_projections_sort() {
-    /*TODO parallel distributed sort*/
-    return NULL;
-}
-
-/*
 Returns the median projection of the dataset
 by sorting the projections based on their x coordinate
 */
 double* mpi_get_center() {
-    double **sorted_points = distributed_projections_sort();
+    double **sorted_points = mpi_projections_sort();
 
     if(n_points_local % 2) { // is odd
         long middle = (n_points_local - 1) / 2;
