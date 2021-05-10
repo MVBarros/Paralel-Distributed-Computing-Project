@@ -50,6 +50,7 @@ double *median_left_point;              /* rightmost point in the global point s
 double *median_right_point;             /* leftmost point in the global point set that is right of the median                */
 
 char dump_tree_token;                   /* used to notify the next process when printing the tree                            */
+
 /*
 Returns the point in the global point set that is furthest away from point p
 */
@@ -321,7 +322,7 @@ void alloc_memory() {
     n_points_local = BLOCK_SIZE(rank, n_procs, n_points_global);
     n_nodes = (n_points_global * 2) - 1;
 
-    pts_aux = create_array_pts(n_dims, max_n_points);
+    pts_aux = create_array_pts(n_dims, n_points_ceil);
 
     ortho_array = create_array_pts(n_dims, n_points_ceil);
     ortho_array_srt = (double**) malloc(sizeof(double*) * n_points_ceil);
