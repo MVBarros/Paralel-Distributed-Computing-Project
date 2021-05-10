@@ -27,6 +27,9 @@ void middle_point(double* a, double* b, double* out);
 //Returns a copy of point p
 void copy_point(double* p, double* out);
 
+//Copies n_points of list a into list b
+void copy_point_list(double **a, double **b, long n_points);
+
 //Compares the x coordenate of the two points
 int compare_point(const void* pt1, const void* pt2);
 
