@@ -79,9 +79,7 @@ void copy_point(double* p, double* copy) {
 * Copies n_points of list a into list b
 */
 void copy_point_list(double **a, double **b, long n_points) {
-    for(long i = 0; i < n_points; i++) {
-        copy_point(a[i], b[i]);
-    }
+    memcpy(*b, *a, n_dims * n_points);
 }
 
 /*
