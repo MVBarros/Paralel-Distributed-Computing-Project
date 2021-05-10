@@ -45,6 +45,9 @@ double *a;                              /* furthest away point from the first po
 double *b;                              /* furthest away point from a in the global set                                      */
 double *furthest_from_center;           /* furthest away point from center in the global set                                 */
 
+double *median_left_point;              /* rightmost point in the global point set that is left of the median                */
+double *median_right_point;             /* leftmost point in the global point set that is right of the median                */
+
 /*
 Returns the point in the global point set that is furthest away from point p
 */
@@ -106,19 +109,20 @@ by sorting the projections based on their x coordinate
 */
 double* mpi_get_center() {
     memcpy(ortho_array_srt, ortho_array, sizeof(double*) * n_points_local);
-    qsort(ortho_array_srt, n_points_local, sizeof(double*), compare_point);
+    /*TODO do parallel sort*/
 
     if(n_points_local % 2) { // is odd
         long middle = (n_points_local - 1) / 2;
-        copy_point(ortho_array_srt[middle], node_centers[node_id]);
+        mpi_get_point(middle, node_centers[node_counter]);
     }
     else { // is even
         long first_middle = (n_points_local / 2) - 1;
         long second_middle = (n_points_local / 2);
-
-        middle_point(ortho_array_srt[first_middle], ortho_array_srt[second_middle], node_centers[node_id]);
+        mpi_get_point(first_middle, median_left_point);
+        mpi_get_point(second_middle, median_right_point);
+        middle_point(median_left_point, median_right_point, node_centers[node_counter]);
     }
-    return node_centers[node_id];
+    return node_centers[node_counter];
 }
 
 /*
@@ -268,6 +272,8 @@ void alloc_memory() {
     a = (double*) malloc(sizeof(double) * n_dims);
     b = (double*) malloc(sizeof(double) * n_dims);
     furthest_from_center = (double*) malloc(sizeof(double) * n_dims);
+    median_left_point = (double*) malloc(sizeof(double) * n_dims);
+    median_right_point = (double*) malloc(sizeof(double) * n_dims);
 }
 
 int main(int argc, char** argv) {
