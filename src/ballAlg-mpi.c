@@ -104,22 +104,29 @@ void mpi_get_point(double **pts, int n, double* out) {
 }
 
 /*
+Dummy for now
+*/
+double **distributed_projections_sort() {
+    /*TODO parallel distributed sort*/
+    return NULL;
+}
+
+/*
 Returns the median projection of the dataset
 by sorting the projections based on their x coordinate
 */
 double* mpi_get_center() {
-    memcpy(ortho_array_srt, ortho_array, sizeof(double*) * n_points_local);
-    /*TODO do parallel sort*/
+    double **sorted_points = distributed_projections_sort();
 
     if(n_points_local % 2) { // is odd
         long middle = (n_points_local - 1) / 2;
-        mpi_get_point(ortho_array_srt, middle, node_centers[node_counter]);
+        mpi_get_point(sorted_points, middle, node_centers[node_counter]);
     }
     else { // is even
         long first_middle = (n_points_local / 2) - 1;
         long second_middle = (n_points_local / 2);
-        mpi_get_point(ortho_array_srt, first_middle, median_left_point);
-        mpi_get_point(ortho_array_srt, second_middle, median_right_point);
+        mpi_get_point(sorted_points, first_middle, median_left_point);
+        mpi_get_point(sorted_points, second_middle, median_right_point);
         middle_point(median_left_point, median_right_point, node_centers[node_counter]);
     }
     return node_centers[node_counter];
