@@ -97,9 +97,9 @@ double mpi_get_radius(double* center) {
     return sqrt(distance(furthest_from_center, center));
 }
 
-// TODO Clara get the nth point in the global set
+// TODO Clara get the nth point in the global pts
 // The owner broadcasts, the rest receives
-void mpi_get_point(int n, double* out) {
+void mpi_get_point(double **pts, int n, double* out) {
 
 }
 
@@ -113,13 +113,13 @@ double* mpi_get_center() {
 
     if(n_points_local % 2) { // is odd
         long middle = (n_points_local - 1) / 2;
-        mpi_get_point(middle, node_centers[node_counter]);
+        mpi_get_point(ortho_array_srt, middle, node_centers[node_counter]);
     }
     else { // is even
         long first_middle = (n_points_local / 2) - 1;
         long second_middle = (n_points_local / 2);
-        mpi_get_point(first_middle, median_left_point);
-        mpi_get_point(second_middle, median_right_point);
+        mpi_get_point(ortho_array_srt, first_middle, median_left_point);
+        mpi_get_point(ortho_array_srt, second_middle, median_right_point);
         middle_point(median_left_point, median_right_point, node_centers[node_counter]);
     }
     return node_centers[node_counter];
