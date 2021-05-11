@@ -236,9 +236,6 @@ void mpi_get_processes_n_points() {
 
 
 void mpi_build_tree() {
-
-
-
     if(n_points_global == 1) {
         if(n_points_local == 1){
             make_node(node_id, pts[0], 0, &node_list[node_counter]);
@@ -249,7 +246,7 @@ void mpi_build_tree() {
 
     mpi_get_processes_n_points();
 
-    mpi_get_point(pts, 0, first_point);
+    mpi_get_point(pts, 0, first_point); /* get first point */
 
 #ifdef DEBUG
     printf("%d first_point=", rank);
@@ -257,8 +254,8 @@ void mpi_build_tree() {
 #endif
 
     mpi_get_furthest_away_point(first_point, a);
-
     mpi_get_furthest_away_point(a, b);
+
 #ifdef DEBUG
     printf("%d a=", rank);
     print_point(a);
@@ -270,8 +267,10 @@ void mpi_build_tree() {
 
     double *center = mpi_get_center();
     double radius = mpi_get_radius(center);
-    long node_id_left = 2*node_id+1;
-    long node_id_right = 2*node_id+2;
+
+    long node_id_left = 2 * node_id + 1;
+    long node_id_right = 2 * node_id + 2;
+
     if(rank==0){
         node_ptr node = make_node(node_id, center, radius, &node_list[node_counter]);
         node->left_id = node_id_left;
@@ -279,52 +278,39 @@ void mpi_build_tree() {
         node_counter++;
     }
 
-    long n_points_left, n_points_right;
+    long n_points_local_left, n_points_local_right;
 
-    mpi_fill_partitions(center, &n_points_left, &n_points_right);
+    mpi_fill_partitions(center, &n_points_local_left, &n_points_local_right);
 
     double **left = pts_aux;
     double **pts_aux_left = pts;
-    double **ortho_array_left = ortho_array;
-    double **ortho_array_srt_left = ortho_array_srt;
     long n_points_global_left = LEFT_PARTITION_SIZE(n_points_global);
 
-    double **right = pts_aux + n_points_left;
-    double **pts_aux_right = pts + n_points_left;
-    double **ortho_array_right = ortho_array + n_points_left;
-    double **ortho_array_srt_right = ortho_array_srt + n_points_left;
+    double **right = pts_aux + n_points_local_left;
+    double **pts_aux_right = pts + n_points_local_left;
     long n_points_global_right = RIGHT_PARTITION_SIZE(n_points_global);
 
-
-
+    /* left partition recursion */
     pts = left;
     pts_aux = pts_aux_left;
-    ortho_array = ortho_array_left;
-    ortho_array_srt = ortho_array_srt_left;
-    n_points_local = n_points_left;
+    n_points_local = n_points_local_left;
     n_points_global = n_points_global_left;
     node_id = node_id_left;
     mpi_build_tree();
 
+    /* right partition recursion */
     pts = right;
     pts_aux = pts_aux_right;
-    ortho_array = ortho_array_right;
-    ortho_array_srt = ortho_array_srt_right;
-    n_points_local = n_points_right;
+    n_points_local = n_points_local_right;
     n_points_global = n_points_global_right;
     node_id = node_id_right;
     mpi_build_tree();
-
-
-
 
 #ifdef DEBUG
     printf("%d center=", rank);
     print_point(center);
     printf("%d radius=%f\n", rank, radius);
 #endif
-
-
 }
 
 /*
