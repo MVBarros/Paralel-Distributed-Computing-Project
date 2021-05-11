@@ -15,7 +15,7 @@ n_threads = str(sys.argv[3])
 flags = ["-n", n_threads]
 
 if (runner == "srun"):
-    flags.append["--ntasks-per-node=1"]
+    flags.append("--ntasks-per-node=1")
 
 
 alg_args = ['2 5 0',
