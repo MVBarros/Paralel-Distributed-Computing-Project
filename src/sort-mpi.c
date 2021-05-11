@@ -39,11 +39,12 @@ double **mpi_projections_sort() {
         displacement += processes_n_points[i];
     }
 
+    /* put in sort_receive_buffer all the orthogonal projections of all the points of all the processes */
     MPI_Allgatherv(
                 *ortho_array,           /* address of what is being sent by the current process */
                 recv_counts[rank],      /* how many elements are being sent */
                 MPI_DOUBLE,             /* sending elements of type double */
-                *sort_receive_buffer,    /* address where I am receiving incoming data */
+                *sort_receive_buffer,   /* address where I am receiving incoming data */
                 recv_counts,            /* array stating how much data I will receive from each process*/
                 displays,               /* displacement of data received by each process */
                 MPI_DOUBLE,             /* receiving elements of type double */
