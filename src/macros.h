@@ -12,5 +12,7 @@
 #define LEFT_PARTITION_SIZE(N) ((N) % 2 ? ((N) - 1) / 2 : (N) / 2)
 #define RIGHT_PARTITION_SIZE(N) ((N) % 2 ? ((N) + 1) / 2 : (N) / 2)
 
+#define IS_POWER_OF_TWO(N) ((N & (N - 1)) == 0)
+
 #define MPI_TAG_DUMP_TREE 90
 #endif
