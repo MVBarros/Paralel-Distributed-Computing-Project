@@ -189,19 +189,21 @@ sets n_points_left and n_points_right to the respective values
 */
 void mpi_fill_partitions(double* center, long *n_points_left, long *n_points_right) {
     long left_count = 0;
-    long right_count = 0;    
-        
+    long right_count = 0;
+
+    /* left partition points */
     for(long i = 0; i < n_points_local; i++) {
-        if(pts[i][0] < center[0]) {      
-            copy_point(pts[i], pts_aux[left_count]);                  
-            left_count++;                                        
+        if(pts[i][0] < center[0]) {
+            copy_point(pts[i], pts_aux[left_count]);
+            left_count++;
         }
     }
 
+    /* right partition points */
     for(long i = 0; i < n_points_local; i++) {
-        if(pts[i][0] >= center[0]) {   
+        if(pts[i][0] >= center[0]) {
             copy_point(pts[i], pts_aux[left_count+right_count]);
-            right_count++;                
+            right_count++;
         }
     }
 
