@@ -4,7 +4,7 @@
 #include <math.h>
 #include <string.h>
 #include <mpi.h>
-#include<unistd.h>
+#include <unistd.h>
 #include "gen_points.h"
 #include "point_operations.h"
 #include "ball_tree.h"
