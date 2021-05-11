@@ -238,7 +238,8 @@ void mpi_get_processes_n_points() {
 void mpi_build_tree() {
     if(n_points_global == 1) {
         if(n_points_local == 1){
-            make_node(node_id, pts[0], 0, &node_list[node_counter]);
+            copy_point(pts[0], node_centers[node_counter]);
+            make_node(node_id, node_centers[node_counter], 0, &node_list[node_counter]);
             node_counter++;
         }
         return;
@@ -267,6 +268,12 @@ void mpi_build_tree() {
 
     double *center = mpi_get_center();
     double radius = mpi_get_radius(center);
+
+#ifdef DEBUG
+    printf("%d center=", rank);
+    print_point(center);
+    printf("%d radius=%f\n", rank, radius);
+#endif
 
     long node_id_left = 2 * node_id + 1;
     long node_id_right = 2 * node_id + 2;
@@ -305,12 +312,6 @@ void mpi_build_tree() {
     n_points_global = n_points_global_right;
     node_id = node_id_right;
     mpi_build_tree();
-
-#ifdef DEBUG
-    printf("%d center=", rank);
-    print_point(center);
-    printf("%d radius=%f\n", rank, radius);
-#endif
 }
 
 /*
