@@ -12,10 +12,11 @@ runner = str(sys.argv[1])
 executable =  str(sys.argv[2])
 n_threads = str(sys.argv[3])
 
-flags = ["-n".append(n_threads)]
-if (runner == "srun") {
+flags = ["-n", n_threads]
+
+if (runner == "srun"):
     flags.append["--ntasks-per-node=1"]
-}
+
 
 alg_args = ['2 5 0',
             '2 8 0',
