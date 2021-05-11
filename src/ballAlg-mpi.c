@@ -234,7 +234,18 @@ void mpi_get_processes_n_points() {
 #endif
 }
 
-void mpi_build_node() {
+
+void mpi_build_tree() {
+
+    
+
+    if(n_points_global == 1) {
+        if(n_points_local == 1){
+            make_node(node_id, pts[0], 0, &node_list[node_counter]);
+            node_counter++;
+        }
+        return;
+    }
 
     mpi_get_processes_n_points();
 
@@ -259,6 +270,52 @@ void mpi_build_node() {
 
     double *center = mpi_get_center();
     double radius = mpi_get_radius(center);
+    long node_id_left = 2*node_id+1;
+    long node_id_right = 2*node_id+2;
+    if(rank==0){
+        node_ptr node = make_node(node_id, center, radius, &node_list[node_counter]);
+        node->left_id = node_id_left;
+        node->right_id = node_id_right;
+    }    
+
+    long n_points_left, n_points_right;
+
+    fill_partitions(center, n_points_left, n_points_right);
+
+    double **left = pts_aux;
+    double **pts_aux_left = pts;
+    double **ortho_array_left = ortho_array;
+    double **ortho_array_srt_left = ortho_array_srt;
+    long n_points_global_left = LEFT_PARTITION_SIZE(n_points_global);
+
+    double **right = pts_aux + n_points_left;
+    double **pts_aux_right = pts + n_points_left;
+    double **ortho_array_right = ortho_array + n_points_left;
+    double **ortho_array_srt_right = ortho_array_srt + n_points_left;
+    long n_points_global_right = RIGHT_PARTITION_SIZE(n_points_global);
+
+    
+
+    pts = left;
+    pts_aux = pts_aux_left;
+    ortho_array = ortho_array_left;
+    ortho_array_srt = ortho_array_srt_left;
+    n_points_local = n_points_left;
+    n_points_global = n_points_global_left;
+    node_id = node_id_left;
+    mpi_build_tree();
+
+    pts = right;
+    pts_aux = pts_aux_right;
+    ortho_array = ortho_array_right;
+    ortho_array_srt = ortho_array_srt_right;
+    n_points_local = n_points_right;
+    n_points_global = n_points_global_right;
+    node_id = node_id_right;
+    mpi_build_tree();
+
+
+
 
 #ifdef DEBUG
     printf("%d center=", rank);
@@ -347,7 +404,7 @@ int main(int argc, char** argv) {
     pts = get_points(argc, argv, &n_dims, &n_points_global);
     alloc_memory();
 
-    mpi_build_node();
+    mpi_build_tree();
 
     MPI_Barrier(MPI_COMM_WORLD);
     exec_time += omp_get_wtime();
