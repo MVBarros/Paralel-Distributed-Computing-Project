@@ -237,7 +237,7 @@ void mpi_get_processes_n_points() {
 
 void mpi_build_tree() {
 
-    
+
 
     if(n_points_global == 1) {
         if(n_points_local == 1){
@@ -276,11 +276,12 @@ void mpi_build_tree() {
         node_ptr node = make_node(node_id, center, radius, &node_list[node_counter]);
         node->left_id = node_id_left;
         node->right_id = node_id_right;
-    }    
+        node_counter++;
+    }
 
     long n_points_left, n_points_right;
 
-    fill_partitions(center, n_points_left, n_points_right);
+    mpi_fill_partitions(center, &n_points_left, &n_points_right);
 
     double **left = pts_aux;
     double **pts_aux_left = pts;
@@ -294,7 +295,7 @@ void mpi_build_tree() {
     double **ortho_array_srt_right = ortho_array_srt + n_points_left;
     long n_points_global_right = RIGHT_PARTITION_SIZE(n_points_global);
 
-    
+
 
     pts = left;
     pts_aux = pts_aux_left;
