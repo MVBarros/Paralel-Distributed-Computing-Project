@@ -9,6 +9,7 @@
 
 extern double ** ortho_array;
 extern double **sorted_projections;
+extern double **sort_receive_buffer;
 
 extern long n_points_local;
 extern long n_dims;
@@ -42,13 +43,14 @@ double **mpi_projections_sort() {
                 *ortho_array,           /* address of what is being sent by the current process */
                 recv_counts[rank],      /* how many elements are being sent */
                 MPI_DOUBLE,             /* sending elements of type double */
-                *sorted_projections,    /* address where I am receiving incoming data */
+                *sort_receive_buffer,    /* address where I am receiving incoming data */
                 recv_counts,            /* array stating how much data I will receive from each process*/
                 displays,               /* displacement of data received by each process */
                 MPI_DOUBLE,             /* receiving elements of type double */
                 MPI_COMM_WORLD          /* communicating with the entire world */
     );
 
+    copy_point_list(sort_receive_buffer, sorted_projections, n_points_global);
     qsort(sorted_projections, n_points_global, sizeof(double*), compare_point);
 
     /*TODO parallel distributed sort*/

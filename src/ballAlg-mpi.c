@@ -53,7 +53,7 @@ double *median_right_point;             /* leftmost point in the global point se
 char dump_tree_token;                   /* used to notify the next process when printing the tree                            */
 
 double **sorted_projections;            /* list of sorted orthogonal projections                                             */
-
+double **sort_receive_buffer;           /* receive buffer used in the sorting algorithm                                      */
 /*
 Returns the point in the global point set that is furthest away from point p
 */
@@ -193,7 +193,7 @@ void mpi_fill_partitions(double* center, long *n_points_left, long *n_points_rig
 
     /* left partition points */
     for(long i = 0; i < n_points_local; i++) {
-        if(pts[i][0] < center[0]) {
+        if(ortho_array[i][0] < center[0]) {
             copy_point(pts[i], pts_aux[left_count]);
             left_count++;
         }
@@ -201,7 +201,7 @@ void mpi_fill_partitions(double* center, long *n_points_left, long *n_points_rig
 
     /* right partition points */
     for(long i = 0; i < n_points_local; i++) {
-        if(pts[i][0] >= center[0]) {
+        if(ortho_array[i][0] >= center[0]) {
             copy_point(pts[i], pts_aux[left_count+right_count]);
             right_count++;
         }
@@ -333,6 +333,7 @@ void alloc_memory() {
     median_left_point = (double*) malloc(sizeof(double) * n_dims);
     median_right_point = (double*) malloc(sizeof(double) * n_dims);
     sorted_projections = create_array_pts(n_dims, n_points_global); //for now this will store all points (no partition)
+    sort_receive_buffer = create_array_pts(n_dims, n_points_global);
 }
 
 int main(int argc, char** argv) {
