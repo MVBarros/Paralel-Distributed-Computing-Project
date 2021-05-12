@@ -218,7 +218,7 @@ void mpi_get_processes_counts(long my_count, long *out) {
 
     /*Broadcast all-to-all of my_count value held locally*/
     MPI_Allgather(
-                &my_count,             /*the address of the data the current process is sending*/
+                &my_count,              /*the address of the data the current process is sending*/
                 1,                      /*number of data elements sent*/
                 MPI_LONG,               /*type of data element sent*/
                 out,                    /*the address where the current process stores the data received*/
@@ -228,43 +228,73 @@ void mpi_get_processes_counts(long my_count, long *out) {
     );
 }
 
-void mpi_send_left_points(long n_points_global_left, long n_points_local_left){
-    //how much points the process should have
-    long n_points_receive = 0;
-    long n_points_low = 0;
-    long n_points_high = 0;
-    if(rank < n_procs/2){                   /*belongs to left partition team*/
-        n_points_receive = BLOCK_SIZE(rank,n_procs/2,n_points_global_left);
-        n_points_low = BLOCK_LOW(rank, n_procs/2, n_points_global_left);
-        n_points_high = BLOCK_HIGH(rank, n_procs/2, n_points_global_left); 
-    }
-    long n_points_to_receive[ n_procs ];
-    mpi_get_processes_counts(n_points_local_left, n_points_to_receive);
-    long count=0;
-    long new_points[n_procs];
-    long points_miss_to_receive = n_points_receive;
-    for(int i = 0; i < n_procs; i++){
-        if(count + n_points_to_receive[i] > n_points_low && points_miss_to_receive != 0){
 
-            new_points[i] = MIN(n_points_to_receive[i], points_miss_to_receive);
+/*
+Places into recv_counts how many points the current process should receive from each process.
+The distribution of points is given by processes_n_points and the current process wants
+the points whose global index start in low and end in high (size points in total)
+*/
+void mpi_get_receive_info(long *processes_n_points, long size, long low, long high, int *recv_counts) {
+    memset(recv_counts, 0, n_procs); /* init buffer at zero, otherwise it may cause problems */
 
-            points_miss_to_receive = points_miss_to_receive - n_points_to_receive[i];
-           
-        }else{
-            break;
+    int count = 0;
+    /* compute counts buffer with how many values I should receive from every other process */
+    for(int i = 0; i < n_procs && size != 0; i++) {
+        if (count + processes_n_points[i] > low) {
+            int to_recv = count + processes_n_points[i] - low;
+            to_recv = MIN(to_recv, processes_n_points[i]);
+            to_recv = MIN(to_recv, size);
+            recv_counts[i] = to_recv * n_dims; /* each point has n_dims */
+            size -= to_recv;
         }
-        count += n_points_to_receive[i];
+        count += processes_n_points[i];
     }
-    long n_points_to_send[ n_procs ];
+}
+
+/*
+Places into send_counts how many points the current process should send each process.
+The current process sends each process its respective entry of receive_counts
+to be placed in the processes send_counts buffer
+*/
+void mpi_get_send_info(int *receive_counts, int *send_counts) {
     MPI_Alltoall(
-                n_points_to_receive,
-                1, 
-                MPI_LONG, 
-                n_points_to_send,
-                1, 
-                MPI_LONG, 
-                MPI_COMM_WORLD
-                );        
+                receive_counts,         /* send how much I should receive from each process */
+                1,                      /* send one value to each process */
+                MPI_INT,                /* value of type int */
+                send_counts,            /* store how much i should send everyone in send_counts */
+                1,                      /* receive one value from each process */
+                MPI_INT,                /* value of type int */
+                MPI_COMM_WORLD          /* entire world */
+    );
+}
+
+/*
+Transfers the left partition points to the respective team such that
+the points retain their original order and are evenly split among the team
+*/
+long mpi_transfer_left_partition(long n_points_local, long n_points_global) {
+    long processes_n_points[n_procs];
+    int receive_counts[n_procs];
+    int send_counts[n_procs];
+
+    long size = 0;
+    long low = 0;
+    long high = 0;
+
+    long left_team_size = n_procs / 2;
+
+    if (rank < left_team_size) {
+        /* belong to team computing left partition */
+        high = BLOCK_HIGH(rank, left_team_size, n_points_global);
+        low = BLOCK_LOW(rank, left_team_size, n_points_global);
+        size = high - low;
+    }
+
+    mpi_get_processes_counts(n_points_local, processes_n_points);
+    mpi_get_receive_info(processes_n_points, size, low, high, receive_counts);
+    mpi_get_send_info(receive_counts, send_counts);
+
+    return size;
 }
 
 
