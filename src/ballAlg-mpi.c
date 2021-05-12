@@ -16,6 +16,8 @@
 
 int n_dims;                             /* number of dimensions of each point                                               */
 
+long current_buffer_size;               /* size of the current buffers (pts, pts_aux, ortho_array, ortho_array_srt          */
+
 double **pts;                           /* list of points of the current iteration of the algorithm                         */
 double **ortho_array;                   /* list of ortogonal projections of the points in pts                               */
 double **ortho_array_srt;               /* list of ortogonal projections of the point in pts to be sorted.                  */
@@ -349,15 +351,15 @@ void mpi_dump_tree() {
 }
 
 void alloc_memory() {
-    long n_points_ceil = (long) (ceil((double) (n_points_global) / (double) (n_procs)));
+    current_buffer_size = (long) (ceil((double) (n_points_global) / (double) (n_procs)));
 
     n_points_local = BLOCK_SIZE(rank, n_procs, n_points_global);
     n_nodes = (n_points_global * 2) - 1;
 
-    pts_aux = create_array_pts(n_dims, n_points_ceil);
+    pts_aux = create_array_pts(n_dims, current_buffer_size);
 
-    ortho_array = create_array_pts(n_dims, n_points_ceil);
-    ortho_array_srt = (double**) malloc(sizeof(double*) * n_points_global);
+    ortho_array = create_array_pts(n_dims, current_buffer_size);
+    ortho_array_srt = (double**) malloc(sizeof(double*) * current_buffer_size);
 
     basub = (double*) malloc(sizeof(double) * n_dims);
     ortho_tmp = (double*) malloc(sizeof(double) * n_dims);
