@@ -11,9 +11,6 @@
 #include "macros.h"
 #include "sort-mpi.h"
 
-//#define DEBUG
-//remove the above comment to enable debug messages
-
 int n_dims;                             /* number of dimensions of each point                                               */
 
 long current_buffer_size;               /* size of the current buffers (pts, pts_aux, ortho_array, ortho_array_srt          */
@@ -56,6 +53,7 @@ char dump_tree_token;                   /* used to notify the next process when 
 
 double **sorted_projections;            /* list of sorted orthogonal projections                                            */
 double **sort_receive_buffer;           /* receive buffer used in the sorting algorithm                                     */
+
 /*
 Returns the point in the global point set that is furthest away from point p
 */
@@ -212,6 +210,7 @@ void mpi_fill_partitions(double* center, long *n_points_left, long *n_points_rig
     *n_points_left = left_count;
     *n_points_right = right_count;
 }
+
 /*
 Puts in out the value of my_count at each process
 */
@@ -227,12 +226,6 @@ void mpi_get_processes_counts(long my_count, long *out) {
                 MPI_LONG,               /*type of data element received*/
                 MPI_COMM_WORLD          /*sending and receiving to all processes*/
     );
-
-#ifdef DEBUG
-    for(int i = 0; i < n_procs; i++) {
-        printf("%d processes_n_points[%d]=%ld\n", rank, i, processes_n_points[i]);
-    }
-#endif
 }
 
 
@@ -250,31 +243,13 @@ void mpi_build_tree() {
 
     mpi_get_point(pts, 0, first_point); /* get first point */
 
-#ifdef DEBUG
-    printf("%d first_point=", rank);
-    print_point(first_point);
-#endif
-
     mpi_get_furthest_away_point(first_point, a);
     mpi_get_furthest_away_point(a, b);
-
-#ifdef DEBUG
-    printf("%d a=", rank);
-    print_point(a);
-    printf("%d b=", rank);
-    print_point(b);
-#endif
 
     calc_orthogonal_projections(a, b);
 
     double *center = mpi_get_center();
     double radius = mpi_get_radius(center);
-
-#ifdef DEBUG
-    printf("%d center=", rank);
-    print_point(center);
-    printf("%d radius=%f\n", rank, radius);
-#endif
 
     long n_points_local_left, n_points_local_right;
     mpi_fill_partitions(center, &n_points_local_left, &n_points_local_right);
