@@ -228,7 +228,6 @@ void mpi_get_processes_counts(long my_count, long *out) {
     );
 }
 
-
 /*
 Places into recv_counts how many points the current process should receive from each process.
 The distribution of points is given by processes_n_points and the current process wants
@@ -257,6 +256,7 @@ The current process sends each process its respective entry of receive_counts
 to be placed in the processes send_counts buffer
 */
 void mpi_get_transfer_send_info(int *receive_counts, int *send_counts) {
+    /* Broadcast all-to-all each process sends what each process should send them */
     MPI_Alltoall(
                 receive_counts,         /* send how much I should receive from each process */
                 1,                      /* send one value to each process */
@@ -272,7 +272,7 @@ void mpi_get_transfer_send_info(int *receive_counts, int *send_counts) {
 Transfers the left partition points to the respective team such that
 the points retain their original order and are evenly split among the team
 */
-long mpi_transfer_left_partition(long n_points_local, long n_points_global) {
+long mpi_transfer_left_partition(long n_points_local_left, long n_points_global_left) {
     long processes_n_points[n_procs];
     int receive_counts[n_procs];
     int send_counts[n_procs];
@@ -285,12 +285,12 @@ long mpi_transfer_left_partition(long n_points_local, long n_points_global) {
 
     if (rank < left_team_size) {
         /* belong to team computing left partition */
-        high = BLOCK_HIGH(rank, left_team_size, n_points_global);
-        low = BLOCK_LOW(rank, left_team_size, n_points_global);
+        high = BLOCK_HIGH(rank, left_team_size, n_points_global_left);
+        low = BLOCK_LOW(rank, left_team_size, n_points_global_left);
         size = high - low;
     }
 
-    mpi_get_processes_counts(n_points_local, processes_n_points);
+    mpi_get_processes_counts(n_points_local_left, processes_n_points);
     mpi_get_transfer_receive_info(processes_n_points, size, low, high, receive_counts);
     mpi_get_transfer_send_info(receive_counts, send_counts);
 
