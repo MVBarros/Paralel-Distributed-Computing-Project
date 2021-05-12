@@ -230,10 +230,10 @@ void mpi_get_processes_counts(long my_count, long *out) {
 
 /*
 Places into recv_counts how many points the current process should receive from each process.
-The distribution of points is given by processes_n_points and the current process wants
-the points whose global index start in low and end in high (size points in total)
+The distribution of points is given by processes_n_points and the current process gets
+size poins starting at gobal index low
 */
-void mpi_get_transfer_receive_info(long *processes_n_points, long size, long low, long high, int *recv_counts) {
+void mpi_get_transfer_receive_info(long *processes_n_points, long size, long low, int *recv_counts) {
     memset(recv_counts, 0, n_procs); /* init buffer at zero, otherwise it may cause problems */
 
     int count = 0;
@@ -279,19 +279,17 @@ long mpi_transfer_left_partition(long n_points_local_left, long n_points_global_
 
     long size = 0;
     long low = 0;
-    long high = 0;
 
     long left_team_size = n_procs / 2;
 
     if (rank < left_team_size) {
         /* belong to team computing left partition */
         low = BLOCK_LOW(rank, left_team_size, n_points_global_left);
-        high = BLOCK_HIGH(rank, left_team_size, n_points_global_left);
-        size = high - low;
+        size = BLOCK_SIZE(rank, left_team_size, n_points_global_left);
     }
 
     mpi_get_processes_counts(n_points_local_left, processes_n_points_left);
-    mpi_get_transfer_receive_info(processes_n_points_left, size, low, high, receive_counts);
+    mpi_get_transfer_receive_info(processes_n_points_left, size, low, receive_counts);
     mpi_get_transfer_send_info(receive_counts, send_counts);
 
     return size;
