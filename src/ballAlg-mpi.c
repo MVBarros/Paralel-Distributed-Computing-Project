@@ -240,11 +240,11 @@ void mpi_send_left_points(long n_points_global_left, long n_points_local_left){
     }
     long n_points_to_receive[ n_procs ];
     mpi_get_processes_counts(n_points_local_left, n_points_to_receive);
-    long points_seen=0;
+    long count=0;
     long new_points[n_procs];
     long points_miss_to_receive = n_points_receive;
     for(int i = 0; i < n_procs; i++){
-        if(points_seen < n_points_receive ){
+        if(count + n_points_to_receive[i] > n_points_low && points_miss_to_receive != 0){
 
             new_points[i] = MIN(n_points_to_receive[i], points_miss_to_receive);
 
@@ -253,8 +253,18 @@ void mpi_send_left_points(long n_points_global_left, long n_points_local_left){
         }else{
             break;
         }
-        points_seen += n_points_to_receive[i];
-    }        
+        count += n_points_to_receive[i];
+    }
+    long n_points_to_send[ n_procs ];
+    MPI_Alltoall(
+                n_points_to_receive,
+                1, 
+                MPI_LONG, 
+                n_points_to_send,
+                1, 
+                MPI_LONG, 
+                MPI_COMM_WORLD
+                );        
 }
 
 
