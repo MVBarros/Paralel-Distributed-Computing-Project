@@ -40,7 +40,7 @@ void realoc_array_pts(double ** p_arr, int n_dims, long curr_size, long new_size
 {
     if (curr_size < new_size) {
         free_array_pts(p_arr);
-        p_arr = create_array_pts(n_dims, new_size);
+        *p_arr = *create_array_pts(n_dims, new_size);
     }
 }
 
