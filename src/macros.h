@@ -6,8 +6,8 @@
 #define BLOCK_SIZE(id,p,n) (BLOCK_HIGH(id,p,n) - BLOCK_LOW(id,p,n) + 1)
 #define BLOCK_OWNER(index,p,n) (((p)*((index)+1)-1)/(n))
 
-#define MAX(X,Y) (X > Y ? X : Y)
-#define MIN(X,Y) (X < Y ? X : Y)
+#define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
+#define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
 
 #define LEFT_PARTITION_SIZE(N) ((N) % 2 ? ((N) - 1) / 2 : (N) / 2)
 #define RIGHT_PARTITION_SIZE(N) ((N) % 2 ? ((N) + 1) / 2 : (N) / 2)
