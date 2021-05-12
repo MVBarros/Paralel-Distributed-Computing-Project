@@ -285,8 +285,8 @@ long mpi_transfer_left_partition(long n_points_local_left, long n_points_global_
 
     if (rank < left_team_size) {
         /* belong to team computing left partition */
-        high = BLOCK_HIGH(rank, left_team_size, n_points_global_left);
         low = BLOCK_LOW(rank, left_team_size, n_points_global_left);
+        high = BLOCK_HIGH(rank, left_team_size, n_points_global_left);
         size = high - low;
     }
 
