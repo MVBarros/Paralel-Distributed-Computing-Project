@@ -221,11 +221,40 @@ void mpi_get_processes_counts(long my_count, long *out) {
                 &my_count,             /*the address of the data the current process is sending*/
                 1,                      /*number of data elements sent*/
                 MPI_LONG,               /*type of data element sent*/
-                out,     /*the address where the current process stores the data received*/
+                out,                    /*the address where the current process stores the data received*/
                 1,                      /*number of data elements sent by each process*/
                 MPI_LONG,               /*type of data element received*/
                 MPI_COMM_WORLD          /*sending and receiving to all processes*/
     );
+}
+
+void mpi_send_left_points(long n_points_global_left, long n_points_local_left){
+    //how much points the process should have
+    long n_points_receive = 0;
+    long n_points_low = 0;
+    long n_points_high = 0;
+    if(rank < n_procs/2){                   /*belongs to left partition team*/
+        n_points_receive = BLOCK_SIZE(rank,n_procs/2,n_points_global_left);
+        n_points_low = BLOCK_LOW(rank, n_procs/2, n_points_global_left);
+        n_points_high = BLOCK_HIGH(rank, n_procs/2, n_points_global_left); 
+    }
+    long n_points_to_receive[ n_procs ];
+    mpi_get_processes_counts(n_points_local_left, n_points_to_receive);
+    long points_seen=0;
+    long new_points[n_procs];
+    long points_miss_to_receive = n_points_receive;
+    for(int i = 0; i < n_procs; i++){
+        if(points_seen < n_points_receive ){
+
+            new_points[i] = MIN(n_points_to_receive[i], points_miss_to_receive);
+
+            points_miss_to_receive = points_miss_to_receive - n_points_to_receive[i];
+           
+        }else{
+            break;
+        }
+        points_seen += n_points_to_receive[i];
+    }        
 }
 
 
