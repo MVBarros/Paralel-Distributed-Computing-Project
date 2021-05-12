@@ -213,7 +213,7 @@ void mpi_fill_partitions(double* center, long *n_points_left, long *n_points_rig
 /*
 Puts in out the value of my_points at each process
 */
-void mpi_get_processes_n_points(long my_points, long *out) {
+void mpi_get_processes_counts(long my_points, long *out) {
 
     /*Broadcast all-to-all the number of points held locally*/
     MPI_Allgather(
@@ -244,7 +244,7 @@ void mpi_build_tree() {
         return;
     }
 
-    mpi_get_processes_n_points(n_points_local, processes_n_points);
+    mpi_get_processes_counts(n_points_local, processes_n_points);
 
     mpi_get_point(pts, 0, first_point); /* get first point */
 
