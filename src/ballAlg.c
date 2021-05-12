@@ -63,15 +63,15 @@ double* get_center() {
 
     if(n_points % 2) { // is odd
         long middle = (n_points - 1) / 2;
-        copy_point(ortho_array_srt[middle], node_centers[node_id]);
+        copy_point(ortho_array_srt[middle], node_centers[node_counter]);
     }
     else { // is even
         long first_middle = (n_points / 2) - 1;
         long second_middle = (n_points / 2);
 
-        middle_point(ortho_array_srt[first_middle], ortho_array_srt[second_middle], node_centers[node_id]);
+        middle_point(ortho_array_srt[first_middle], ortho_array_srt[second_middle], node_centers[node_counter]);
     }
-    return node_centers[node_id];
+    return node_centers[node_counter];
 }
 
 /*
@@ -93,11 +93,11 @@ void fill_partitions(double** left, double** right, double* center) {
     long r = 0;
     for(long i = 0; i < n_points; i++) {
         if(ortho_array[i][0] < center[0]) {
-            left[l] = pts[i];
+            copy_point(pts[i], left[l]);
             l++;
         }
         else {
-            right[r] = pts[i];
+            copy_point(pts[i], right[r]);
             r++;
         }
     }
@@ -105,7 +105,9 @@ void fill_partitions(double** left, double** right, double* center) {
 
 void build_tree() {
     if(n_points == 1) {
-        make_node(node_id, pts[0], 0, &node_list[node_id]);
+        copy_point(pts[0], node_centers[node_counter]);
+        make_node(node_id, node_centers[node_counter], 0, &node_list[node_counter]);
+        node_counter++;
         return;
     }
 
@@ -117,7 +119,8 @@ void build_tree() {
     double* center = get_center();
     double radius = get_radius(center);
 
-    node_ptr node = make_node(node_id, center, radius, &node_list[node_id]);
+    node_ptr node = make_node(node_id, center, radius, &node_list[node_counter]);
+    node_counter++;
 
     double **left = pts_aux;
     double **pts_aux_left = pts;
@@ -131,8 +134,8 @@ void build_tree() {
     double **ortho_array_srt_right = ortho_array_srt + n_points_left;
     long n_points_right = RIGHT_PARTITION_SIZE(n_points);
 
-    long node_id_left = ++node_counter;
-    long node_id_right = ++node_counter;
+    long node_id_left = 2 * node_id + 1;
+    long node_id_right = 2 * node_id + 2;
 
     fill_partitions(left, right, center);
 
@@ -162,7 +165,7 @@ void alloc_memory() {
     ortho_array_srt = (double**) malloc(sizeof(double*) * n_points);
     basub = (double*) malloc(sizeof(double) * n_dims);
     ortho_tmp = (double*) malloc(sizeof(double) * n_dims);
-    pts_aux = (double**) malloc(sizeof(double*) * n_points);
+    pts_aux = create_array_pts(n_dims, n_points);
     node_list = (node_ptr) malloc(sizeof(node_t) * n_nodes);
     node_centers = create_array_pts(n_dims, n_nodes);
 }
