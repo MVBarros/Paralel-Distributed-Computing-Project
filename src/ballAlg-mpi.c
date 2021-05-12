@@ -211,13 +211,13 @@ void mpi_fill_partitions(double* center, long *n_points_left, long *n_points_rig
     *n_points_right = right_count;
 }
 /*
-Puts in out the value of my_points at each process
+Puts in out the value of my_count at each process
 */
-void mpi_get_processes_counts(long my_points, long *out) {
+void mpi_get_processes_counts(long my_count, long *out) {
 
     /*Broadcast all-to-all the number of points held locally*/
     MPI_Allgather(
-                &my_points,             /*the address of the data the current process is sending*/
+                &my_count,             /*the address of the data the current process is sending*/
                 1,                      /*number of data elements sent*/
                 MPI_LONG,               /*type of data element sent*/
                 out,     /*the address where the current process stores the data received*/
