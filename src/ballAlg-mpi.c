@@ -276,27 +276,27 @@ void mpi_build_tree() {
     printf("%d radius=%f\n", rank, radius);
 #endif
 
+    long n_points_local_left, n_points_local_right;
+    mpi_fill_partitions(center, &n_points_local_left, &n_points_local_right);
+
+    long n_points_global_left = LEFT_PARTITION_SIZE(n_points_global);
+    long n_points_global_right = RIGHT_PARTITION_SIZE(n_points_global);
+
     long node_id_left = 2 * node_id + 1;
     long node_id_right = 2 * node_id + 2;
 
-    if(rank==0){
+    if(rank == 0){
         node_ptr node = make_node(node_id, center, radius, &node_list[node_counter]);
         node->left_id = node_id_left;
         node->right_id = node_id_right;
         node_counter++;
     }
 
-    long n_points_local_left, n_points_local_right;
-
-    mpi_fill_partitions(center, &n_points_local_left, &n_points_local_right);
-
     double **left = pts_aux;
     double **pts_aux_left = pts;
-    long n_points_global_left = LEFT_PARTITION_SIZE(n_points_global);
 
     double **right = pts_aux + n_points_local_left;
     double **pts_aux_right = pts + n_points_local_left;
-    long n_points_global_right = RIGHT_PARTITION_SIZE(n_points_global);
 
     /* left partition recursion */
     pts = left;
