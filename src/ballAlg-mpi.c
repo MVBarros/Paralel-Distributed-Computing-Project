@@ -217,7 +217,7 @@ Puts in out the value of my_count at each process
 */
 void mpi_get_processes_counts(long my_count, long *out) {
 
-    /*Broadcast all-to-all the number of points held locally*/
+    /*Broadcast all-to-all of my_count value held locally*/
     MPI_Allgather(
                 &my_count,             /*the address of the data the current process is sending*/
                 1,                      /*number of data elements sent*/
