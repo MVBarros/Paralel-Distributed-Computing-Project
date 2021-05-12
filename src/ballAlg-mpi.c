@@ -211,17 +211,16 @@ void mpi_fill_partitions(double* center, long *n_points_left, long *n_points_rig
     *n_points_right = right_count;
 }
 /*
-Get the number of points currently held by each process
+Puts in out the value of my_points at each process
 */
-void mpi_get_processes_n_points() {
-    long my_points = n_points_local;
+void mpi_get_processes_n_points(long my_points, long *out) {
 
     /*Broadcast all-to-all the number of points held locally*/
     MPI_Allgather(
                 &my_points,             /*the address of the data the current process is sending*/
                 1,                      /*number of data elements sent*/
                 MPI_LONG,               /*type of data element sent*/
-                processes_n_points,     /*the address where the current process stores the data received*/
+                out,     /*the address where the current process stores the data received*/
                 1,                      /*number of data elements sent by each process*/
                 MPI_LONG,               /*type of data element received*/
                 MPI_COMM_WORLD          /*sending and receiving to all processes*/
@@ -245,7 +244,7 @@ void mpi_build_tree() {
         return;
     }
 
-    mpi_get_processes_n_points();
+    mpi_get_processes_n_points(n_points_local, processes_n_points);
 
     mpi_get_point(pts, 0, first_point); /* get first point */
 
