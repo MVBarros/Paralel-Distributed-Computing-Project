@@ -256,7 +256,7 @@ The current process sends each process its respective entry of receive_counts
 to be placed in the processes send_counts buffer
 */
 void mpi_get_transfer_send_info(int *receive_counts, int *send_counts) {
-    /* Broadcast all-to-all each process sends what each process should send them */
+    /* Broadcast all-to-all each process sends to each process what is should sent him */
     MPI_Alltoall(
                 receive_counts,         /* send how much I should receive from each process */
                 1,                      /* send one value to each process */
