@@ -234,7 +234,7 @@ Places into recv_counts how many points the current process should receive from 
 The distribution of points is given by processes_n_points and the current process wants
 the points whose global index start in low and end in high (size points in total)
 */
-void mpi_get_receive_info(long *processes_n_points, long size, long low, long high, int *recv_counts) {
+void mpi_get_transfer_receive_info(long *processes_n_points, long size, long low, long high, int *recv_counts) {
     memset(recv_counts, 0, n_procs); /* init buffer at zero, otherwise it may cause problems */
 
     int count = 0;
@@ -256,7 +256,7 @@ Places into send_counts how many points the current process should send each pro
 The current process sends each process its respective entry of receive_counts
 to be placed in the processes send_counts buffer
 */
-void mpi_get_send_info(int *receive_counts, int *send_counts) {
+void mpi_get_transfer_send_info(int *receive_counts, int *send_counts) {
     MPI_Alltoall(
                 receive_counts,         /* send how much I should receive from each process */
                 1,                      /* send one value to each process */
@@ -291,8 +291,8 @@ long mpi_transfer_left_partition(long n_points_local, long n_points_global) {
     }
 
     mpi_get_processes_counts(n_points_local, processes_n_points);
-    mpi_get_receive_info(processes_n_points, size, low, high, receive_counts);
-    mpi_get_send_info(receive_counts, send_counts);
+    mpi_get_transfer_receive_info(processes_n_points, size, low, high, receive_counts);
+    mpi_get_transfer_send_info(receive_counts, send_counts);
 
     return size;
 }
