@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <mpi.h>
-#include "gen_points.h"
+#include "gen_points_mpi.h"
 #include "macros.h"
 
 #define RANGE 10
@@ -30,6 +30,19 @@ double **create_array_pts(int n_dims, long np)
     return p_arr;
 }
 
+void free_array_pts(double ** p_arr)
+{
+    free(p_arr[0]);
+    free(p_arr);
+}
+
+void realoc_array_pts(double ** p_arr, int n_dims, long curr_size, long new_size)
+{
+    if (curr_size < new_size) {
+        free_array_pts(p_arr);
+        p_arr = create_array_pts(n_dims, new_size);
+    }
+}
 
 double **get_points(int argc, char *argv[], int *n_dims, long *np)
 {

@@ -5,7 +5,7 @@
 #include <string.h>
 #include <mpi.h>
 #include <unistd.h>
-#include "gen_points.h"
+#include "gen_points_mpi.h"
 #include "point_operations.h"
 #include "ball_tree.h"
 #include "macros.h"
@@ -41,19 +41,19 @@ int n_procs;                            /* total number of processes            
 
 long *processes_n_points;               /* array of the number of points owned by each process currently                    */
 
-double **furthest_away_point_buffer;    /* buffer storing the local furthest away point at each process                      */
+double **furthest_away_point_buffer;    /* buffer storing the local furthest away point at each process                     */
 
-double *a;                              /* furthest away point from the first point in the globalset                         */
-double *b;                              /* furthest away point from a in the global set                                      */
-double *furthest_from_center;           /* furthest away point from center in the global set                                 */
+double *a;                              /* furthest away point from the first point in the globalset                        */
+double *b;                              /* furthest away point from a in the global set                                     */
+double *furthest_from_center;           /* furthest away point from center in the global set                                */
 
-double *median_left_point;              /* rightmost point in the global point set that is left of the median                */
-double *median_right_point;             /* leftmost point in the global point set that is right of the median                */
+double *median_left_point;              /* rightmost point in the global point set that is left of the median               */
+double *median_right_point;             /* leftmost point in the global point set that is right of the median               */
 
-char dump_tree_token;                   /* used to notify the next process when printing the tree                            */
+char dump_tree_token;                   /* used to notify the next process when printing the tree                           */
 
-double **sorted_projections;            /* list of sorted orthogonal projections                                             */
-double **sort_receive_buffer;           /* receive buffer used in the sorting algorithm                                      */
+double **sorted_projections;            /* list of sorted orthogonal projections                                            */
+double **sort_receive_buffer;           /* receive buffer used in the sorting algorithm                                     */
 /*
 Returns the point in the global point set that is furthest away from point p
 */
