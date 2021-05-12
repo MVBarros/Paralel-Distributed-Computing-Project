@@ -273,7 +273,7 @@ Transfers the left partition points to the respective team such that
 the points retain their original order and are evenly split among the team
 */
 long mpi_transfer_left_partition(long n_points_local_left, long n_points_global_left) {
-    long processes_n_points[n_procs];
+    long processes_n_points_left[n_procs];
     int receive_counts[n_procs];
     int send_counts[n_procs];
 
@@ -290,8 +290,8 @@ long mpi_transfer_left_partition(long n_points_local_left, long n_points_global_
         size = high - low;
     }
 
-    mpi_get_processes_counts(n_points_local_left, processes_n_points);
-    mpi_get_transfer_receive_info(processes_n_points, size, low, high, receive_counts);
+    mpi_get_processes_counts(n_points_local_left, processes_n_points_left);
+    mpi_get_transfer_receive_info(processes_n_points_left, size, low, high, receive_counts);
     mpi_get_transfer_send_info(receive_counts, send_counts);
 
     return size;
