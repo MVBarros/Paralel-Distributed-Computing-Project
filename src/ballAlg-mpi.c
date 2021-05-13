@@ -365,7 +365,7 @@ Print the local tree at each process.
 Each process waits for the processes with lower rank to finish before printing
 */
 void mpi_dump_tree() {
-    /* restore world communicator */
+    /* restore world communicator to print the tree in order */
     communicator = MPI_COMM_WORLD;
     MPI_Comm_rank (MPI_COMM_WORLD, &rank);
     MPI_Comm_size (MPI_COMM_WORLD, &n_procs);
