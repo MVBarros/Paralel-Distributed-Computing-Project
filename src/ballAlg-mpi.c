@@ -360,7 +360,7 @@ long mpi_transfer_left_partition(long n_points_local_left, long n_points_global_
 Transfers the right partition points to the respective team such that
 the points retain their original order and are evenly split among the new team
 */
-long mpi_transfer_right_partition(long n_points_local_right, long n_points_global_right, double** sendbuf, double** recvbuf) {
+long mpi_transfer_right_partition(long n_points_local_right, long n_points_global_right, double** send_buf, double** recv_buf) {
     long processes_n_points_right[n_procs];
     int receive_counts[n_procs];
     int send_counts[n_procs];
@@ -464,11 +464,16 @@ void mpi_build_tree() {
 Print the local tree at each process.
 Each process waits for the processes with lower rank to finish before printing
 */
-void mpi_dump_tree() {
-    /* restore world communicator to print the tree in order */
+void mpi_dump_tree(double exec_time) {
+    /* restore world communicator and original ranking to print the tree in order */
     communicator = MPI_COMM_WORLD;
     MPI_Comm_rank (MPI_COMM_WORLD, &rank);
     MPI_Comm_size (MPI_COMM_WORLD, &n_procs);
+
+    if (!rank) {
+        fprintf(stderr, "%.1lf\n", exec_time);
+        printf("%d %ld\n", n_dims, n_nodes);
+    }
 
     char dump_tree_token;
 
@@ -554,11 +559,7 @@ int main(int argc, char** argv) {
     MPI_Barrier(MPI_COMM_WORLD);
     exec_time += omp_get_wtime();
 
-    if (!rank) {
-        fprintf(stderr, "%.1lf\n", exec_time);
-        printf("%d %ld\n", n_dims, n_nodes);
-    }
-    mpi_dump_tree();
+    mpi_dump_tree(exec_time);
 
     MPI_Finalize();
 }
