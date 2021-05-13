@@ -54,6 +54,9 @@ char dump_tree_token;                   /* used to notify the next process when 
 double **sorted_projections;            /* list of sorted orthogonal projections                                            */
 double **sort_receive_buffer;           /* receive buffer used in the sorting algorithm                                     */
 
+MPI_Comm communicator;                  /* current communicator, includes all processes of the current team                 */
+MPI_Group group;                        /* current group, includes all processes of the current team                        */
+
 /*
 Returns the point in the global point set that is furthest away from point p
 */
@@ -78,7 +81,7 @@ void mpi_get_furthest_away_point(double *p, double *out) {
                 *furthest_away_point_buffer,      /* store each local furthest_away_point in the buffer */
                 n_dims,                           /* each local_furthest_point has n_dims elements  */
                 MPI_DOUBLE,                       /* each element is of type double */
-                MPI_COMM_WORLD                    /* broadcast is all to all */
+                communicator                      /* broadcast to all processes in the current team */
     );
 
     double global_max_distance = 0.0;
@@ -115,7 +118,7 @@ void mpi_broadcast_point(double **pts, long i, int root, double *out) {
                 n_dims,             /*the number of data elements sent*/
                 MPI_DOUBLE,         /*type of data elements sent*/
                 root,               /*rank of the process sending the data*/
-                MPI_COMM_WORLD      /*broadcast to all processes*/
+                communicator        /*broadcast to all processes in the current team*/
         );
         copy_point(pts[i], out);
     }
@@ -126,7 +129,7 @@ void mpi_broadcast_point(double **pts, long i, int root, double *out) {
                 n_dims,             /*the number of data elements to receive*/
                 MPI_DOUBLE,         /*type of data elements received*/
                 root,               /*rank of the process sending the data*/
-                MPI_COMM_WORLD      /*broadcast to all processes*/
+                communicator        /*broadcast to all processes in the current team*/
         );
     }
 }
@@ -224,7 +227,7 @@ void mpi_get_processes_counts(long my_count, long *out) {
                 out,                    /*the address where the current process stores the data received*/
                 1,                      /*number of data elements sent by each process*/
                 MPI_LONG,               /*type of data element received*/
-                MPI_COMM_WORLD          /*sending and receiving to all processes*/
+                communicator            /*sending and receiving to all processes in the current team*/
     );
 }
 
@@ -264,7 +267,7 @@ void mpi_get_transfer_send_info(int *receive_counts, int *send_counts) {
                 send_counts,            /* store how much i should send everyone in send_counts */
                 1,                      /* receive one value from each process */
                 MPI_INT,                /* value of type int */
-                MPI_COMM_WORLD          /* entire world */
+                communicator            /* sending and receiving to all processes in the current team */
     );
 }
 
@@ -362,6 +365,11 @@ Print the local tree at each process.
 Each process waits for the processes with lower rank to finish before printing
 */
 void mpi_dump_tree() {
+    /* restore world communicator */
+    communicator = MPI_COMM_WORLD;
+    MPI_Comm_rank (MPI_COMM_WORLD, &rank);
+    MPI_Comm_size (MPI_COMM_WORLD, &n_procs);
+
     /*wait for the previous process to print its tree*/
     if (rank) {
         MPI_Recv(
@@ -370,7 +378,7 @@ void mpi_dump_tree() {
                 MPI_CHAR,           /* of type char */
                 rank - 1,           /* from the process with current rank - 1 */
                 MPI_TAG_DUMP_TREE,  /* unique tag identifying what i am receiving */
-                MPI_COMM_WORLD,     /* global communicator */
+                communicator,       /* global communicator */
                 MPI_STATUS_IGNORE   /* don't care about the return status */
         );
     }
@@ -380,14 +388,14 @@ void mpi_dump_tree() {
     fflush(stdout);
 
     /*tell the next process to print its tree*/
-    if (rank != n_procs - 1) {
+    if (rank != (n_procs - 1)) {
         MPI_Send(
                 &dump_tree_token,   /* address of the sent token */
                 1,                  /* token is one element */
                 MPI_CHAR,           /* of type char */
                 rank + 1,           /* sent to the process with current rank + 1 */
                 MPI_TAG_DUMP_TREE,  /* unique tag identifying what i am sending */
-                MPI_COMM_WORLD      /* global communicator */
+                communicator        /* global communicator */
         );
     }
 }
@@ -422,6 +430,9 @@ void alloc_memory() {
     median_right_point = (double*) malloc(sizeof(double) * n_dims);
     sorted_projections = create_array_pts(n_dims, n_points_global); //for now this will store all points (no partition)
     sort_receive_buffer = create_array_pts(n_dims, n_points_global);
+
+    communicator = MPI_COMM_WORLD;
+    MPI_Comm_group(communicator, &group);
 }
 
 int main(int argc, char** argv) {

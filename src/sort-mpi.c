@@ -20,6 +20,8 @@ extern long *processes_n_points;
 extern int rank;
 extern int n_procs;
 
+extern MPI_Comm communicator;
+
 /*
 Placeholder sort where everyone receives and sorts all points
 */
@@ -48,7 +50,7 @@ double **mpi_projections_sort() {
                 recv_counts,            /* array stating how much data I will receive from each process*/
                 displays,               /* displacement of data received by each process */
                 MPI_DOUBLE,             /* receiving elements of type double */
-                MPI_COMM_WORLD          /* communicating with the entire world */
+                communicator            /* sending and receiving from/to the entire current team */
     );
 
     copy_point_list(sort_receive_buffer, sorted_projections, n_points_global);
