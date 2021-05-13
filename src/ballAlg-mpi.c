@@ -317,7 +317,7 @@ void mpi_get_transfer_send_info(int *receive_counts, int *send_counts, int *send
 
 /*
 Transfers the left partition points to the respective team such that
-the points retain their original order and are evenly split among the team
+the points retain their original order and are evenly split among the new team
 */
 long mpi_transfer_left_partition(long n_points_local_left, long n_points_global_left, double** send_buf, double** recv_buf) {
     long processes_n_points_left[n_procs];
@@ -358,8 +358,8 @@ long mpi_transfer_left_partition(long n_points_local_left, long n_points_global_
 }
 
 /*
-Transfers the left partition points to the respective team such that
-the points retain their original order and are evenly split among the team
+Transfers the right partition points to the respective team such that
+the points retain their original order and are evenly split among the new team
 */
 long mpi_transfer_right_partition(long n_points_local_right, long n_points_global_right, double** sendbuf, double** recvbuf) {
     long processes_n_points_right[n_procs];
@@ -374,7 +374,7 @@ long mpi_transfer_right_partition(long n_points_local_right, long n_points_globa
     long left_team_size = n_procs / 2;
 
     if (rank >= left_team_size) {
-        /* belong to team computing left partition */
+        /* belong to team computing right partition */
         low = BLOCK_LOW(rank - left_team_size, n_procs - left_team_size, n_points_global_right);
         size = BLOCK_SIZE(rank - left_team_size, n_procs - left_team_size, n_points_global_right);
     }
@@ -384,16 +384,17 @@ long mpi_transfer_right_partition(long n_points_local_right, long n_points_globa
     mpi_get_transfer_send_info(receive_counts, send_counts, send_displacement);
 
 
+    /*transfer owned right partition points (send_buf) and receive new owned right partition points at recv_buf */
     MPI_Alltoallv(
-        *sendbuf,               /* starting address of send buffer */
-        send_counts,            /* integer array, where entry i specifies the number of elements to send to rank i */
-        send_displacement,      /* integer array, where entry i specifies the displacement (offset from sendbuf, in units of sendtype) from which to send data to rank i */
-        MPI_DOUBLE,             /* datatype of send buffer elements */
-        *recvbuf,               /* address of receive buffer */
-        receive_counts,         /* integer array, where entry j specifies the number of elements to receive from rank j */
-        receive_displacement,   /* integer array, where entry j specifies the displacement (offset from recvbuf, in units of recvtype) to which data from rank j should be written */
-        MPI_DOUBLE,             /* datatype of receive buffer elements */
-        communicator            /* communicator over which data is to be exchanged */
+                *send_buf,              /* starting address of sent data */
+                send_counts,            /* number of elements to send to each process */
+                send_displacement,      /* buffer offset of data elements to send to each process */
+                MPI_DOUBLE,             /* send values of type double */
+                *recv_buf,              /* starting address where received data is written */
+                receive_counts,         /* number of elements to receive from each process */
+                receive_displacement,   /* buffer offset of data elements received from each process */
+                MPI_DOUBLE,             /* receive values of type double */
+                communicator            /* sending and receiving to all processes in the current team */
     );
 
     return size;
