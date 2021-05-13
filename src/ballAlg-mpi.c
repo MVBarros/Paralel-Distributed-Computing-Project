@@ -19,8 +19,6 @@ double **ortho_array;                   /* list of ortogonal projections of the 
 double **ortho_array_srt;               /* list of ortogonal projections of the point in pts to be sorted.                  */
 double **pts_aux;                       /* list of points of the next iteration of the algorithm                            */
 
-double *first_point;                    /* first point in the set i.e. with lower index relative to the initial point set   */
-
 long n_points_local;                    /* number of points in the dataset present at this process                          */
 long n_points_global;                   /* number of points in the dataset present at all processes                         */
 
@@ -41,6 +39,7 @@ long *processes_n_points;               /* array of the number of points owned b
 
 double **furthest_away_point_buffer;    /* buffer storing the local furthest away point at each process                     */
 
+double *first_point;                    /* first point in the set i.e. with lower index relative to the initial point set   */
 double *a;                              /* furthest away point from the first point in the globalset                        */
 double *b;                              /* furthest away point from a in the global set                                     */
 double *furthest_from_center;           /* furthest away point from center in the global set                                */
