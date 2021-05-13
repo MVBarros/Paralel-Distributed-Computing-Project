@@ -401,7 +401,8 @@ void mpi_dump_tree() {
 }
 
 void alloc_memory() {
-    current_buffer_size = (long) (ceil((double) (n_points_global) / (double) (n_procs)));
+    long min_split = pow(2, floor(log2(n_procs)));
+    current_buffer_size = (long) (ceil((double) (n_points_global) / (double) (min_split)));
 
     n_points_local = BLOCK_SIZE(rank, n_procs, n_points_global);
     n_nodes = (n_points_global * 2) - 1;
