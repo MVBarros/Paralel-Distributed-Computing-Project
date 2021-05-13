@@ -72,13 +72,12 @@ int mpi_split_communication_group() {
     }
     else {
         /* belong to right team */
-        team_size = n_procs - team_size;
-        ret = 1;
-
         for(int i = n_procs/2; i < n_procs; i++) {
             new_group[i-(n_procs/2)]=i;
         }
 
+        team_size = n_procs - team_size;
+        ret = 1;
     }
     MPI_Group_incl(group, team_size, new_group, &group);
     MPI_Comm_create(communicator, group, &communicator);
