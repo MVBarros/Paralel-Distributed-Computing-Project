@@ -58,7 +58,7 @@ Split processes in two teams, the left team having n_proc/2 processes
 and the right team having the rest.
 Returns 0 if the current process belongs to the left team, 1 otherwise
 */
-int mpi_set_communications_group() {
+int mpi_split_communication_group() {
     int new_group[n_procs - (n_procs/2)];
 
     int ret = 0;
