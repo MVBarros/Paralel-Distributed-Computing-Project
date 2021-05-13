@@ -52,7 +52,9 @@ MPI_Group group;                        /* current group, includes all processes
 int rank;                               /* rank of the current process in the current team                                  */
 int n_procs;                            /* total number of processes in the current team                                    */
 
-
+/*
+Creates new groups and communication channels 
+*/
 void mpi_set_communications_group(){
     int new_group[n_procs/2];
     if(rank < n_procs/2){   /*left-team*/
