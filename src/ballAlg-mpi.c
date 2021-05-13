@@ -53,6 +53,26 @@ int rank;                               /* rank of the current process in the cu
 int n_procs;                            /* total number of processes in the current team                                    */
 
 
+void mpi_set_communications_group(){
+    int new_group[n_procs/2];
+    if(rank < n_procs/2){   /*left-team*/
+        for(int i = 0; i < n_procs/2; i++){
+            new_group[i]=i;
+        }
+    }else{                  /*right-team*/
+        for(int i = n_procs/2; i < n_procs; i++){
+            new_group[i-(n_procs/2)]=i;
+        }
+    }
+    MPI_Group_incl(group, n_procs/2, new_group, &group);
+    MPI_Comm_create(communicator, group, &communicator);
+
+    /*update rank and n_procs*/
+    MPI_Comm_rank (communicator, &rank);
+    MPI_Comm_size (communicator, &n_procs);
+}
+
+
 /*
 Returns the point in the global point set that is furthest away from point p
 */
