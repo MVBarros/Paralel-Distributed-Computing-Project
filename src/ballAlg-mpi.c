@@ -271,7 +271,7 @@ The distribution of points is given by processes_n_points and the current proces
 size poins starting at gobal index low
 */
 void mpi_get_transfer_receive_info(long *processes_n_points, long size, long low, int *recv_counts, int *receive_displacement) {
-    memset(recv_counts, 0, n_procs); /* init buffer at zero, otherwise it may cause problems */
+    memset(recv_counts, 0, n_procs * sizeof(int)); /* init buffer at zero, otherwise it may cause problems */
 
     int count = 0;
     /* compute counts buffer with how many values I should receive from every other process */
@@ -375,8 +375,8 @@ long mpi_transfer_right_partition(long n_points_local_right, long n_points_globa
 
     if (rank >= left_team_size) {
         /* belong to team computing left partition */
-        low = BLOCK_LOW(rank-left_team_size, left_team_size, n_points_global_right);
-        size = BLOCK_SIZE(rank-left_team_size, left_team_size, n_points_global_right);
+        low = BLOCK_LOW(rank - left_team_size, n_procs - left_team_size, n_points_global_right);
+        size = BLOCK_SIZE(rank - left_team_size, n_procs - left_team_size, n_points_global_right);
     }
 
     mpi_get_processes_counts(n_points_local_right, processes_n_points_right);
