@@ -232,7 +232,7 @@ Places into recv_counts how many points the current process should receive from 
 The distribution of points is given by processes_n_points and the current process gets
 size poins starting at gobal index low
 */
-void mpi_get_transfer_receive_info(long *processes_n_points, long size, long low, int *recv_counts) {
+void mpi_get_transfer_receive_info(long *processes_n_points, long size, long low, int *recv_counts, int *receive_displacement) {
     memset(recv_counts, 0, n_procs); /* init buffer at zero, otherwise it may cause problems */
 
     int count = 0;
@@ -247,6 +247,11 @@ void mpi_get_transfer_receive_info(long *processes_n_points, long size, long low
         }
         count += processes_n_points[i];
     }
+
+    for(int i = 0, count = 0; i < n_procs; i++){
+        receive_displacement[i]=count;
+        count += recv_counts[i];
+    }
 }
 
 /*
@@ -254,7 +259,7 @@ Places into send_counts how many points the current process should send each pro
 The current process sends each process its respective entry of receive_counts
 to be placed in the processes send_counts buffer
 */
-void mpi_get_transfer_send_info(int *receive_counts, int *send_counts) {
+void mpi_get_transfer_send_info(int *receive_counts, int *send_counts, int *send_displacement) {
     /* Broadcast all-to-all each process sends to each process what is should sent him */
     MPI_Alltoall(
                 receive_counts,         /* send how much I should receive from each process */
@@ -265,16 +270,23 @@ void mpi_get_transfer_send_info(int *receive_counts, int *send_counts) {
                 MPI_INT,                /* value of type int */
                 communicator            /* sending and receiving to all processes in the current team */
     );
+    int count = 0;
+    for(int i = 0; i < n_procs; i++){
+        send_displacement[i]=count;
+        count += send_counts[i];
+    }
 }
 
 /*
 Transfers the left partition points to the respective team such that
 the points retain their original order and are evenly split among the team
 */
-long mpi_transfer_left_partition(long n_points_local_left, long n_points_global_left) {
+long mpi_transfer_left_partition(long n_points_local_left, long n_points_global_left, double** sendbuf, double** recvbuf) {
     long processes_n_points_left[n_procs];
     int receive_counts[n_procs];
     int send_counts[n_procs];
+    int send_displacement[n_procs];
+    int receive_displacement[n_procs];
 
     long size = 0;
     long low = 0;
@@ -288,8 +300,21 @@ long mpi_transfer_left_partition(long n_points_local_left, long n_points_global_
     }
 
     mpi_get_processes_counts(n_points_local_left, processes_n_points_left);
-    mpi_get_transfer_receive_info(processes_n_points_left, size, low, receive_counts);
-    mpi_get_transfer_send_info(receive_counts, send_counts);
+    mpi_get_transfer_receive_info(processes_n_points_left, size, low, receive_counts, receive_displacement);
+    mpi_get_transfer_send_info(receive_counts, send_counts, send_displacement);
+    
+
+    MPI_Alltoallv(
+        *sendbuf,               /*Starting address of send buffer*/
+        send_counts,            /*Integer array, where entry i specifies the number of elements to send to rank i*/        
+        send_displacement,      /*Integer array, where entry i specifies the displacement (offset from sendbuf, in units of sendtype) from which to send data to rank i*/
+        MPI_DOUBLE,             /*Datatype of send buffer elements*/
+        *recvbuf,               /*Address of receive buffer*/
+        receive_counts,         /*Integer array, where entry j specifies the number of elements to receive from rank j*/
+        receive_displacement,   /*Integer array, where entry j specifies the displacement (offset from recvbuf, in units of recvtype) to which data from rank j should be written*/ 
+        MPI_DOUBLE,             /*Datatype of receive buffer elements*/
+        communicator            /*Communicator over which data is to be exchanged*/
+    );      
 
     return size;
 }
