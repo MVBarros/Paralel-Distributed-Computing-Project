@@ -319,6 +319,47 @@ long mpi_transfer_left_partition(long n_points_local_left, long n_points_global_
     return size;
 }
 
+/*
+Transfers the left partition points to the respective team such that
+the points retain their original order and are evenly split among the team
+*/
+long mpi_transfer_right_partition(long n_points_local_right, long n_points_global_right, double** sendbuf, double** recvbuf) {
+    long processes_n_points_right[n_procs];
+    int receive_counts[n_procs];
+    int send_counts[n_procs];
+    int send_displacement[n_procs];
+    int receive_displacement[n_procs];
+
+    long size = 0;
+    long low = 0;
+
+    long left_team_size = n_procs / 2;
+
+    if (rank >= left_team_size) {
+        /* belong to team computing left partition */
+        low = BLOCK_LOW(rank-left_team_size, left_team_size, n_points_global_right);
+        size = BLOCK_SIZE(rank-left_team_size, left_team_size, n_points_global_right);
+    }
+
+    mpi_get_processes_counts(n_points_local_right, processes_n_points_right);
+    mpi_get_transfer_receive_info(processes_n_points_right, size, low, receive_counts, receive_displacement);
+    mpi_get_transfer_send_info(receive_counts, send_counts, send_displacement);
+    
+
+    MPI_Alltoallv(
+        *sendbuf,               /*Starting address of send buffer*/
+        send_counts,            /*Integer array, where entry i specifies the number of elements to send to rank i*/        
+        send_displacement,      /*Integer array, where entry i specifies the displacement (offset from sendbuf, in units of sendtype) from which to send data to rank i*/
+        MPI_DOUBLE,             /*Datatype of send buffer elements*/
+        *recvbuf,               /*Address of receive buffer*/
+        receive_counts,         /*Integer array, where entry j specifies the number of elements to receive from rank j*/
+        receive_displacement,   /*Integer array, where entry j specifies the displacement (offset from recvbuf, in units of recvtype) to which data from rank j should be written*/ 
+        MPI_DOUBLE,             /*Datatype of receive buffer elements*/
+        communicator            /*Communicator over which data is to be exchanged*/
+    );      
+
+    return size;
+}
 
 void mpi_build_tree() {
     if(n_points_global == 1) {
