@@ -4,7 +4,6 @@
 #include <string.h>
 #include <mpi.h>
 #include "point_operations.h"
-#include "sort-mpi.h"
 #include "macros.h"
 
 extern double ** ortho_array;

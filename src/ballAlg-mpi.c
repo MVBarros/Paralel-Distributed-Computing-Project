@@ -9,7 +9,7 @@
 #include "point_operations.h"
 #include "ball_tree.h"
 #include "macros.h"
-#include "sort-mpi.h"
+#include "sort_mpi.h"
 
 int n_dims;                             /* number of dimensions of each point                                               */
 

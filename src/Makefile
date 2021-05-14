@@ -14,7 +14,7 @@ LDFLAGS = -lm
 
 all: ballAlg ballAlg-mpi ballQuery
 
-ballAlg-mpi: ballAlg-mpi.c gen_points_mpi.o point_operations.o ball_tree.o sort-mpi.o
+ballAlg-mpi: ballAlg-mpi.c gen_points_mpi.o point_operations.o ball_tree.o sort_mpi.o
 	$(MPICC) $(CFLAGS) -fopenmp -o $@ $^ ${LDFLAGS}
 
 ballAlg: ballAlg.c gen_points.o point_operations.o ball_tree.o
@@ -29,7 +29,7 @@ gen_points.o: gen_points.c
 gen_points_mpi.o: gen_points_mpi.c
 	$(MPICC) $(CFLAGS) -c $^ ${LDFLAGS}
 
-sort-mpi.o: sort-mpi.c
+sort_mpi.o: sort_mpi.c
 	$(MPICC) $(CFLAGS) -c $^ ${LDFLAGS}
 
 point_operations.o: point_operations.c
