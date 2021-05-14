@@ -515,27 +515,24 @@ void alloc_memory() {
     n_nodes = (n_points_global * 2) - 1;
 
     pts_aux = create_array_pts(n_dims, point_buffer_size);
-
     ortho_array = create_array_pts(n_dims, point_buffer_size);
     ortho_array_srt = (double**) malloc(sizeof(double*) * point_buffer_size);
 
-    basub = (double*) malloc(sizeof(double) * n_dims);
-    ortho_tmp = (double*) malloc(sizeof(double) * n_dims);
-
     node_list = (node_ptr) malloc(sizeof(node_t) * n_nodes);
     node_centers = create_array_pts(n_dims, n_nodes);
-    processes_n_points = (long*) malloc(sizeof(long) * n_procs);
 
+    basub = (double*) malloc(sizeof(double) * n_dims);
+    ortho_tmp = (double*) malloc(sizeof(double) * n_dims);
     first_point = (double*) malloc(sizeof(double) * n_dims);
-
-    furthest_away_point_buffer = create_array_pts(n_dims, n_procs);
     a = (double*) malloc(sizeof(double) * n_dims);
     b = (double*) malloc(sizeof(double) * n_dims);
-
     furthest_from_center = (double*) malloc(sizeof(double) * n_dims);
-
     median_left_point = (double*) malloc(sizeof(double) * n_dims);
     median_right_point = (double*) malloc(sizeof(double) * n_dims);
+
+    processes_n_points = (long*) malloc(sizeof(long) * n_procs);
+    furthest_away_point_buffer = create_array_pts(n_dims, n_procs);
+
     sorted_projections = create_array_pts(n_dims, n_points_global); //for now this will store all points (no partition)
     sort_receive_buffer = create_array_pts(n_dims, n_points_global);
 
