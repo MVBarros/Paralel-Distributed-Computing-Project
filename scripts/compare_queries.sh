@@ -4,6 +4,6 @@ for n in 1 2 4 8 16 32 64
 do
     for query in "${queries[@]}"
     do
-        diff --strip-trailing-cr queries/expected/${query} queries/obtained/${n}/${query}
+        diff ---ignore-all-space queries/expected/${query} queries/obtained/${n}/${query}
     done
 done
