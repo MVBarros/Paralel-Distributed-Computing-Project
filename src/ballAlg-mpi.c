@@ -52,6 +52,150 @@ MPI_Group group;                        /* current group, includes all processes
 int rank;                               /* rank of the current process in the current team                                  */
 int n_procs;                            /* total number of processes in the current team                                    */
 
+/***********************************************************************************************************************************************/
+/***********************************************************************************************************************************************/
+/************* Serial Implementation. Used when the number of processes of the current team is one to avoid overhead of mpi calls **************/
+/***********************************************************************************************************************************************/
+/***********************************************************************************************************************************************/
+
+/*
+Returns the point in pts furthest away from point p
+*/
+double* get_furthest_away_point(double* p) {
+    double max_distance = 0.0;
+    double* furthest_point = p;
+    for(long i = 0; i < n_points_local; i++){
+        double curr_distance = distance(p, pts[i]);
+        if(curr_distance > max_distance){
+            max_distance = curr_distance;
+            furthest_point = pts[i];
+        }
+    }
+    return furthest_point;
+}
+
+/*
+Returns the radius of the ball tree node defined by point center
+*/
+double get_radius(double* center) {
+    double* a = get_furthest_away_point(center);
+    return sqrt(distance(a, center));
+}
+
+/*
+Returns the median projection of the dataset
+by sorting the projections based on their x coordinate
+*/
+double* get_center() {
+    memcpy(ortho_array_srt, ortho_array, sizeof(double*) * n_points_local);
+    qsort(ortho_array_srt, n_points_local, sizeof(double*), compare_point);
+
+    if(n_points_local % 2) {
+        /* is odd */
+        long middle = (n_points_local - 1) / 2;
+        copy_point(ortho_array_srt[middle], node_centers[node_counter]);
+    }
+    else {
+        /* is even */
+        long first_middle = (n_points_local / 2) - 1;
+        long second_middle = (n_points_local / 2);
+
+        middle_point(ortho_array_srt[first_middle], ortho_array_srt[second_middle], node_centers[node_counter]);
+    }
+    return node_centers[node_counter];
+}
+
+/*
+Computes the orthogonal projections of points in pts onto line defined by b-a
+*/
+void calc_orthogonal_projections(double* a, double* b) {
+    sub_points(b, a, basub);
+    for(long i = 0; i < n_points_local; i++){
+        orthogonal_projection(basub, a, pts[i], ortho_array[i], ortho_tmp);
+    }
+}
+
+/*
+Places each point in pts in partition left or right by comparing the x coordinate
+of its orthogonal projection with the x coordinate of the center point
+*/
+void fill_partitions(double** left, double** right, double* center) {
+    long l = 0;
+    long r = 0;
+    for(long i = 0; i < n_points_local; i++) {
+        if(ortho_array[i][0] < center[0]) {
+            copy_point(pts[i], left[l]);
+            l++;
+        }
+        else {
+            copy_point(pts[i], right[r]);
+            r++;
+        }
+    }
+}
+
+void build_tree() {
+    if(n_points_local == 1) {
+        copy_point(pts[0], node_centers[node_counter]);
+        make_node(node_id, node_centers[node_counter], 0, &node_list[node_counter]);
+        node_counter++;
+        return;
+    }
+
+    double* a = get_furthest_away_point(pts[0]);
+    double* b = get_furthest_away_point(a);
+
+    calc_orthogonal_projections(a, b);
+
+    double* center = get_center();
+    double radius = get_radius(center);
+
+    node_ptr node = make_node(node_id, center, radius, &node_list[node_counter]);
+    node_counter++;
+
+    double **left = pts_aux;
+    double **pts_aux_left = pts;
+    double **ortho_array_left = ortho_array;
+    double **ortho_array_srt_left = ortho_array_srt;
+    long n_points_left = LEFT_PARTITION_SIZE(n_points_local);
+
+    double **right = pts_aux + n_points_left;
+    double **pts_aux_right = pts + n_points_left;
+    double **ortho_array_right = ortho_array + n_points_left;
+    double **ortho_array_srt_right = ortho_array_srt + n_points_left;
+    long n_points_right = RIGHT_PARTITION_SIZE(n_points_local);
+
+    long node_id_left = 2 * node_id + 1;
+    long node_id_right = 2 * node_id + 2;
+
+    fill_partitions(left, right, center);
+
+    pts = left;
+    pts_aux = pts_aux_left;
+    ortho_array = ortho_array_left;
+    ortho_array_srt = ortho_array_srt_left;
+    n_points_local = n_points_left;
+    node_id = node_id_left;
+    build_tree();
+
+    pts = right;
+    pts_aux = pts_aux_right;
+    ortho_array = ortho_array_right;
+    ortho_array_srt = ortho_array_srt_right;
+    n_points_local = n_points_right;
+    node_id = node_id_right;
+    build_tree();
+
+    node->left_id = node_id_left;
+    node->right_id = node_id_right;
+}
+
+/***********************************************************************************************************************************************/
+/***********************************************************************************************************************************************/
+/**** MPI Implementation. Used when the number of processes of the current team is more than one and points are distributed among processes ****/
+/***********************************************************************************************************************************************/
+/***********************************************************************************************************************************************/
+
 
 /*
 Split processes in two teams, the left team having n_proc/2 processes
@@ -191,7 +335,7 @@ void mpi_get_point(double **pts, long n, double* out) {
 Returns the median projection of the dataset
 by sorting the projections based on their x coordinate
 */
-double* mpi_get_center() {
+double* mpi_get_center(double *out) {
     double **sorted_points = mpi_projections_sort();
 
     if(n_points_global % 2) { // is odd
@@ -203,19 +347,9 @@ double* mpi_get_center() {
         long second_middle = (n_points_global / 2);
         mpi_get_point(sorted_points, first_middle, median_left_point);
         mpi_get_point(sorted_points, second_middle, median_right_point);
-        middle_point(median_left_point, median_right_point, node_centers[node_counter]);
+        middle_point(median_left_point, median_right_point, out);
     }
-    return node_centers[node_counter];
-}
-
-/*
-Computes the orthogonal projections of points in pts onto line defined by b-a
-*/
-void calc_orthogonal_projections(double* a, double* b) {
-    sub_points(b, a, basub);
-    for(long i = 0; i < n_points_local; i++){
-        orthogonal_projection(basub, a, pts[i], ortho_array[i], ortho_tmp);
-    }
+    return out;
 }
 
 /*
@@ -400,6 +534,12 @@ long mpi_transfer_right_partition(long n_points_local_right, long n_points_globa
 }
 
 void mpi_build_tree() {
+
+    if (n_procs == 1) {
+        build_tree();
+        return;
+    }
+
     if(n_points_global == 1) {
         if(n_points_local == 1){
             copy_point(pts[0], node_centers[node_counter]);
@@ -408,6 +548,7 @@ void mpi_build_tree() {
         }
         return;
     }
+
 
     mpi_get_processes_counts(n_points_local, processes_n_points);
 
@@ -418,7 +559,7 @@ void mpi_build_tree() {
 
     calc_orthogonal_projections(a, b);
 
-    double *center = mpi_get_center();
+    double *center = mpi_get_center(node_centers[node_counter]);
     double radius = mpi_get_radius(center);
 
     long n_points_local_left, n_points_local_right;
@@ -437,27 +578,22 @@ void mpi_build_tree() {
         node_counter++;
     }
 
-    double **left = pts_aux;
-    double **pts_aux_left = pts;
+    n_points_local_right = mpi_transfer_right_partition(n_points_local_right, n_points_global_right, pts_aux + n_points_local_left, pts);
+    n_points_local_left = mpi_transfer_left_partition(n_points_local_left, n_points_global_left, pts_aux, pts);
 
-    double **right = pts_aux + n_points_local_left;
-    double **pts_aux_right = pts + n_points_local_left;
-
-    /* left partition recursion */
-    pts = left;
-    pts_aux = pts_aux_left;
-    n_points_local = n_points_local_left;
-    n_points_global = n_points_global_left;
-    node_id = node_id_left;
-    mpi_build_tree();
-
-    /* right partition recursion */
-    pts = right;
-    pts_aux = pts_aux_right;
-    n_points_local = n_points_local_right;
-    n_points_global = n_points_global_right;
-    node_id = node_id_right;
-    mpi_build_tree();
+    if (mpi_split_communication_group()) {
+        /* belong to right team */
+        n_points_global = n_points_global_right;
+        n_points_local = n_points_local_right;
+        node_id = node_id_right;
+        mpi_build_tree();
+    } else {
+        /* belong to left team */
+        n_points_global = n_points_global_left;
+        n_points_local = n_points_local_left;
+        node_id = node_id_left;
+        mpi_build_tree();
+    }
 }
 
 /*
@@ -514,12 +650,14 @@ void alloc_memory() {
     n_points_local = BLOCK_SIZE(rank, n_procs, n_points_global);
     n_nodes = (n_points_global * 2) - 1;
 
+    long node_buffer_size = pow(2, min_split) + (2 * point_buffer_size) - 1;
+
     pts_aux = create_array_pts(n_dims, point_buffer_size);
     ortho_array = create_array_pts(n_dims, point_buffer_size);
     ortho_array_srt = (double**) malloc(sizeof(double*) * point_buffer_size);
 
-    node_list = (node_ptr) malloc(sizeof(node_t) * n_nodes);
-    node_centers = create_array_pts(n_dims, n_nodes);
+    node_list = (node_ptr) malloc(sizeof(node_t) * node_buffer_size);
+    node_centers = create_array_pts(n_dims, node_buffer_size);
 
     basub = (double*) malloc(sizeof(double) * n_dims);
     ortho_tmp = (double*) malloc(sizeof(double) * n_dims);
@@ -534,7 +672,7 @@ void alloc_memory() {
     furthest_away_point_buffer = create_array_pts(n_dims, n_procs);
 
     sorted_projections = (double**) malloc(sizeof(double*) * n_points_global); //for now this will store all points (no partition)
-   
+
     sort_receive_buffer = create_array_pts(n_dims, n_points_global);
 
     communicator = MPI_COMM_WORLD;
