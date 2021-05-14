@@ -77,3 +77,6 @@ for alg_arg, tree_file, query_arg, expected_out in zip(alg_args, tree_files, que
     os.remove(tree_file)
 
 print()
+
+shutil.rmtree('trees')
+
