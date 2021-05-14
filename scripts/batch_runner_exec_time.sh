@@ -4,6 +4,7 @@
 #SBATCH -N 64
 #SBATCH --output=/dev/null
 #SBATCH --error=/dev/null
+#SBATCH --time=72:00:00
 
 mkdir -p exec_times
 
