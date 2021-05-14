@@ -4,7 +4,7 @@ import sys
 import os
 import shutil
 
-if len(sys.argv) < 3:
+if len(sys.argv) < 4:
     print("Usage: test_runner.py <mpirun|srun> <executable> <n_threads>")
     exit(1)
 
@@ -13,9 +13,12 @@ executable =  str(sys.argv[2])
 n_threads = str(sys.argv[3])
 
 flags = ["-n", n_threads]
+query_flags = ["-n", "1"]
+
 
 if (runner == "srun"):
     flags.append("--ntasks-per-node=1")
+    query_flags.append("--ntasks-per-node=1")
 
 
 alg_args = ['2 5 0',
@@ -66,7 +69,7 @@ if not os.path.exists('trees'):
 for alg_arg, tree_file, query_arg, expected_out in zip(alg_args, tree_files, query_args, query_outputs):
     with open(tree_file, 'w+') as tree_fd:
         subprocess.run([runner, *flags, executable, *alg_arg], stdout=tree_fd, stderr=subprocess.DEVNULL)
-    result = subprocess.run(['../src/ballQuery', *query_arg], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    result = subprocess.run([runner, *query_flags, '../src/ballQuery', *query_arg], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
     if result.stdout.strip() == expected_out.strip():
         print('.', end='', flush=True)
     else:
