@@ -2,6 +2,8 @@
 #SBATCH --tasks-per-node 1
 #SBATCH -n 64
 #SBATCH -N 64
+#SBATCH --output=/dev/null
+#SBATCH --error=/dev/null
 
 mkdir -p trees
 mkdir -p queries/obtained
