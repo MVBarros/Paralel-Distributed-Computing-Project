@@ -533,7 +533,7 @@ void alloc_memory() {
     processes_n_points = (long*) malloc(sizeof(long) * n_procs);
     furthest_away_point_buffer = create_array_pts(n_dims, n_procs);
 
-    sorted_projections = create_array_pts(n_dims, n_points_global); //for now this will store all points (no partition)
+    sorted_projections = (double**) malloc(sizeof(double*) * n_points_global); //for now this will store all points (no partition)
     sort_receive_buffer = create_array_pts(n_dims, n_points_global);
 
     communicator = MPI_COMM_WORLD;

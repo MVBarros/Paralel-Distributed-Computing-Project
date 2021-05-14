@@ -53,7 +53,8 @@ double **mpi_projections_sort() {
                 communicator            /* sending and receiving from/to the entire current team */
     );
 
-    copy_point_list(sort_receive_buffer, sorted_projections, n_points_global);
+    /*copy before ordering*/
+    memcpy(sorted_projections, sort_receive_buffer, sizeof(double*) * n_points_global);
     qsort(sorted_projections, n_points_global, sizeof(double*), compare_point);
 
     /*TODO parallel distributed sort*/
