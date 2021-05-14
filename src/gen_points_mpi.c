@@ -61,9 +61,9 @@ double **get_points(int argc, char *argv[], int *n_dims, long *np)
     long low = BLOCK_LOW(rank, n_procs, *np);
 
     long min_split = pow(2, floor(log2(n_procs)));
-    long current_buffer_size = (long) (ceil((double) (*np) / (double) (min_split)));
+    long point_buffer_size = (long) (ceil((double) (*np) / (double) (min_split)));
 
-    pt_arr = (double **) create_array_pts(*n_dims, current_buffer_size); //Overfit just in case
+    pt_arr = (double **) create_array_pts(*n_dims, point_buffer_size); //Overfit just in case
 
     for(i = 0; i < low; i++) {
         for(j = 0; j < *n_dims; j++) {
