@@ -9,7 +9,7 @@
 #include "point_operations.h"
 #include "ball_tree.h"
 #include "macros.h"
-#include "sort_mpi.h"
+#include "get_center_mpi.h"
 
 int n_dims;                             /* number of dimensions of each point                                               */
 
@@ -42,9 +42,6 @@ double *furthest_from_center;           /* furthest away point from center in th
 
 double *median_left_point;              /* rightmost point in the global point set that is left of the median               */
 double *median_right_point;             /* leftmost point in the global point set that is right of the median               */
-
-double **sorted_projections;            /* list of sorted orthogonal projections                                            */
-double **sort_receive_buffer;           /* receive buffer used in the sorting algorithm                                     */
 
 MPI_Comm communicator;                  /* current communicator, includes all processes of the current team                 */
 MPI_Group group;                        /* current group, includes all processes of the current team                        */
@@ -312,11 +309,11 @@ void mpi_broadcast_point(double **pts, long i, int root, double *out) {
 }
 
 /*
-Looks for the nth point in all processes,
-once it is found the process which contains it will broadcast it
-and the remaining will receive it
+Get nth point in the global point list pts.
+The distribution of points is given by processes_n_points.
+The nth point is copied to out at all processes
 */
-void mpi_get_point(double **pts, long n, double* out) {
+void mpi_get_point(double **pts, long n, long* processes_n_points, double* out) {
     long count = 0;
     long displacement = 0;
     for(int i = 0; i < n_procs; i++){
@@ -336,19 +333,7 @@ Returns the median projection of the dataset
 by sorting the projections based on their x coordinate
 */
 double* mpi_get_center(double *out) {
-    double **sorted_points = mpi_projections_sort();
-
-    if(n_points_global % 2) { // is odd
-        long middle = (n_points_global - 1) / 2;
-        mpi_get_point(sorted_points, middle, node_centers[node_counter]);
-    }
-    else { // is even
-        long first_middle = (n_points_global / 2) - 1;
-        long second_middle = (n_points_global / 2);
-        mpi_get_point(sorted_points, first_middle, median_left_point);
-        mpi_get_point(sorted_points, second_middle, median_right_point);
-        middle_point(median_left_point, median_right_point, out);
-    }
+    mpi_naive_get_center(out);
     return out;
 }
 
@@ -372,7 +357,7 @@ void mpi_fill_partitions(double* center, long *n_points_left, long *n_points_rig
     /* right partition points */
     for(long i = 0; i < n_points_local; i++) {
         if(ortho_array[i][0] >= center[0]) {
-            copy_point(pts[i], pts_aux[left_count+right_count]);
+            copy_point(pts[i], pts_aux[left_count + right_count]);
             right_count++;
         }
     }
@@ -552,7 +537,7 @@ void mpi_build_tree() {
 
     mpi_get_processes_counts(n_points_local, processes_n_points);
 
-    mpi_get_point(pts, 0, first_point); /* get first point */
+    mpi_get_point(pts, 0, processes_n_points, first_point); /* get first point */
 
     mpi_get_furthest_away_point(first_point, a);
     mpi_get_furthest_away_point(a, b);
@@ -670,10 +655,6 @@ void alloc_memory() {
 
     processes_n_points = (long*) malloc(sizeof(long) * n_procs);
     furthest_away_point_buffer = create_array_pts(n_dims, n_procs);
-
-    sorted_projections = (double**) malloc(sizeof(double*) * n_points_global); //for now this will store all points (no partition)
-
-    sort_receive_buffer = create_array_pts(n_dims, n_points_global);
 
     communicator = MPI_COMM_WORLD;
     MPI_Comm_group(communicator, &group);
