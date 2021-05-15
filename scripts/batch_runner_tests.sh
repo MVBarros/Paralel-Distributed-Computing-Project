@@ -17,13 +17,13 @@ srun -n 1 -e /dev/null -o queries/obtained/$SLURM_NTASKS/3-5000000-0.query ../sr
 rm trees/$SLURM_NTASKS/3-5000000-0.tree
 
 srun -n $SLURM_NTASKS -e /dev/null -o trees/$SLURM_NTASKS/4-10000000-0.tree ../src/ballAlg-mpi 4 10000000 0
-srun -n 1 -e /dev/null -o queries/obtained/$SLURM_NTASKS/4-10000000-0.query ../src/ballQuery trees/$SLURM_NTASKS/4-10000000-0.tree 4 5 6
+srun -n 1 -e /dev/null -o queries/obtained/$SLURM_NTASKS/4-10000000-0.query ../src/ballQuery trees/$SLURM_NTASKS/4-10000000-0.tree 2 4 6 8
 rm trees/$SLURM_NTASKS/4-10000000-0.tree
 
 srun -n $SLURM_NTASKS -e /dev/null -o trees/$SLURM_NTASKS/3-20000000-0.tree ../src/ballAlg-mpi 3 20000000 0
-srun -n 1 -e /dev/null -o queries/obtained/$SLURM_NTASKS/3-20000000-0.query ../src/ballQuery trees/$SLURM_NTASKS/3-20000000-0.tree 4 5 6
+srun -n 1 -e /dev/null -o queries/obtained/$SLURM_NTASKS/3-20000000-0.query ../src/ballQuery trees/$SLURM_NTASKS/3-20000000-0.tree 1 5 9
 rm trees/$SLURM_NTASKS/3-20000000-0.tree
 
 srun -n $SLURM_NTASKS -e /dev/null -o trees/$SLURM_NTASKS/4-20000000-0.tree ../src/ballAlg-mpi 4 20000000 0
-srun -n 1 -e /dev/null -o queries/obtained/$SLURM_NTASKS/4-20000000-0.query ../src/ballQuery trees/$SLURM_NTASKS/4-20000000-0.tree 4 5 6
+srun -n 1 -e /dev/null -o queries/obtained/$SLURM_NTASKS/4-20000000-0.query ../src/ballQuery trees/$SLURM_NTASKS/4-20000000-0.tree 8 6 4 2
 rm trees/$SLURM_NTASKS/4-20000000-0.tree
