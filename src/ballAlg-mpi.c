@@ -646,13 +646,11 @@ void mpi_dump_tree(double exec_time) {
 void alloc_memory() {
     long min_split = pow(2, floor(log2(n_procs)));
     long max_split_depth = ceil(log2(n_procs));
-
     long point_buffer_size = (long) (ceil((double) (n_points_global) / (double) (min_split)));
+    long node_buffer_size = max_split_depth + (2 * point_buffer_size) - 1;
 
     n_points_local = BLOCK_SIZE(rank, n_procs, n_points_global);
     n_nodes = (n_points_global * 2) - 1;
-
-    long node_buffer_size = max_split_depth + (2 * point_buffer_size) - 1;
 
     pts_aux = create_array_pts(n_dims, point_buffer_size);
     ortho_array = create_array_pts(n_dims, point_buffer_size);
