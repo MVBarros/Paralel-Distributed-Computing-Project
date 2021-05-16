@@ -6,6 +6,7 @@
 #include "point_operations.h"
 #include "gen_points.h"
 #include "macros.h"
+#include "point_utils_mpi.h"
 
 extern double ** ortho_array;
 
