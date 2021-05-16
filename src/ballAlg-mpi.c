@@ -373,7 +373,7 @@ void mpi_get_transfer_send_info(int *receive_counts, int *send_counts, int *send
 Transfers the left partition points to the respective team such that
 the points retain their original order and are evenly split among the new team
 */
-long mpi_async_transfer_left_partition(long n_points_local_left, long n_points_global_left, double** send_buf, double** recv_buf, MPI_Request *request) {
+long mpi_transfer_left_partition(long n_points_local_left, long n_points_global_left, double** send_buf, double** recv_buf) {
     long processes_n_points_left[n_procs];
     int receive_counts[n_procs];
     int receive_displacement[n_procs];
@@ -396,7 +396,7 @@ long mpi_async_transfer_left_partition(long n_points_local_left, long n_points_g
     mpi_get_transfer_send_info(receive_counts, send_counts, send_displacement);
 
     /*transfer owned left partition points (send_buf) and receive new owned left partition points at recv_buf */
-    MPI_Ialltoallv(
+    MPI_Alltoallv(
                 *send_buf,              /* starting address of sent data */
                 send_counts,            /* number of elements to send to each process */
                 send_displacement,      /* buffer offset of data elements to send to each process */
@@ -405,8 +405,7 @@ long mpi_async_transfer_left_partition(long n_points_local_left, long n_points_g
                 receive_counts,         /* number of elements to receive from each process */
                 receive_displacement,   /* buffer offset of data elements received from each process */
                 MPI_DOUBLE,             /* receive values of type double */
-                communicator,           /* sending and receiving to all processes in the current team */
-                request                 /* place async request result in request */
+                communicator            /* sending and receiving to all processes in the current team */
     );
 
     return size;
@@ -416,7 +415,7 @@ long mpi_async_transfer_left_partition(long n_points_local_left, long n_points_g
 Transfers the right partition points to the respective team such that
 the points retain their original order and are evenly split among the new team
 */
-long mpi_async_transfer_right_partition(long n_points_local_right, long n_points_global_right, double** send_buf, double** recv_buf, MPI_Request *request) {
+long mpi_transfer_right_partition(long n_points_local_right, long n_points_global_right, double** send_buf, double** recv_buf) {
     long processes_n_points_right[n_procs];
     int receive_counts[n_procs];
     int send_counts[n_procs];
@@ -440,7 +439,7 @@ long mpi_async_transfer_right_partition(long n_points_local_right, long n_points
 
 
     /*transfer owned right partition points (send_buf) and receive new owned right partition points at recv_buf */
-    MPI_Ialltoallv(
+    MPI_Alltoallv(
                 *send_buf,              /* starting address of sent data */
                 send_counts,            /* number of elements to send to each process */
                 send_displacement,      /* buffer offset of data elements to send to each process */
@@ -449,8 +448,7 @@ long mpi_async_transfer_right_partition(long n_points_local_right, long n_points
                 receive_counts,         /* number of elements to receive from each process */
                 receive_displacement,   /* buffer offset of data elements received from each process */
                 MPI_DOUBLE,             /* receive values of type double */
-                communicator,           /* sending and receiving to all processes in the current team */
-                request                 /* place async request result in request */
+                communicator            /* sending and receiving to all processes in the current team */
     );
 
     return size;
@@ -501,18 +499,9 @@ void mpi_build_tree() {
         node_counter++;
     }
 
-    MPI_Request left_request;
-    MPI_Request right_request;
-
-    /*
-    Transfer partition points to correct team.
-    Do both transfer asynchronously at the same time since they are expensive.
-    */
-    n_points_local_right = mpi_async_transfer_right_partition(n_points_local_right, n_points_global_right, pts_aux + n_points_local_left, pts, &right_request);
-    n_points_local_left = mpi_async_transfer_left_partition(n_points_local_left, n_points_global_left, pts_aux, pts, &left_request);
-
-    MPI_Wait(&left_request, MPI_STATUS_IGNORE);
-    MPI_Wait(&right_request, MPI_STATUS_IGNORE);
+    /* transfer partition points to correct team */
+    n_points_local_right = mpi_transfer_right_partition(n_points_local_right, n_points_global_right, pts_aux + n_points_local_left, pts);
+    n_points_local_left = mpi_transfer_left_partition(n_points_local_left, n_points_global_left, pts_aux, pts);
 
     if (mpi_split_communication_group()) {
         /* belong to right team */
