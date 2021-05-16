@@ -10,6 +10,7 @@
 #include "ball_tree.h"
 #include "macros.h"
 #include "get_center_mpi.h"
+#include "point_utils_mpi.h"
 
 int n_dims;                             /* number of dimensions of each point                                               */
 
@@ -281,54 +282,6 @@ double mpi_get_radius(double* center) {
 }
 
 /*
-Process root broadcast his local point at index i of pts to all other processes.
-That point is copied onto out
-*/
-void mpi_broadcast_point(double **pts, long i, int root, double *out) {
-    if(rank == root){
-        /*send*/
-        MPI_Bcast(
-                pts[i],             /*the address of the data the current process is sending*/
-                n_dims,             /*the number of data elements sent*/
-                MPI_DOUBLE,         /*type of data elements sent*/
-                root,               /*rank of the process sending the data*/
-                communicator        /*broadcast to all processes in the current team*/
-        );
-        copy_point(pts[i], out);
-    }
-    else{
-        /*receive*/
-        MPI_Bcast(
-                out,                /*the address of the data the current process is receiving*/
-                n_dims,             /*the number of data elements to receive*/
-                MPI_DOUBLE,         /*type of data elements received*/
-                root,               /*rank of the process sending the data*/
-                communicator        /*broadcast to all processes in the current team*/
-        );
-    }
-}
-
-/*
-Get nth point in the global point list pts.
-The distribution of points is given by processes_n_points.
-The nth point is copied to out at all processes
-*/
-void mpi_get_point(double **pts, long n, long* processes_n_points, double* out) {
-    long count = 0;
-    long displacement = 0;
-    for(int i = 0; i < n_procs; i++){
-        if(processes_n_points[i] + count > n ){
-            displacement = n - count;
-            mpi_broadcast_point(pts, displacement, i, out);
-            break;
-        }
-        else {
-            count += processes_n_points[i];
-        }
-    }
-}
-
-/*
 Returns the median projection of the dataset
 by sorting the projections based on their x coordinate
 */
@@ -364,23 +317,6 @@ void mpi_fill_partitions(double* center, long *n_points_left, long *n_points_rig
 
     *n_points_left = left_count;
     *n_points_right = right_count;
-}
-
-/*
-Puts in out the value of my_count at each process
-*/
-void mpi_get_processes_counts(long my_count, long *out) {
-
-    /*Broadcast all-to-all of my_count value held locally*/
-    MPI_Allgather(
-                &my_count,              /*the address of the data the current process is sending*/
-                1,                      /*number of data elements sent*/
-                MPI_LONG,               /*type of data element sent*/
-                out,                    /*the address where the current process stores the data received*/
-                1,                      /*number of data elements sent by each process*/
-                MPI_LONG,               /*type of data element received*/
-                communicator            /*sending and receiving to all processes in the current team*/
-    );
 }
 
 /*
@@ -437,7 +373,7 @@ void mpi_get_transfer_send_info(int *receive_counts, int *send_counts, int *send
 Transfers the left partition points to the respective team such that
 the points retain their original order and are evenly split among the new team
 */
-long mpi_transfer_left_partition(long n_points_local_left, long n_points_global_left, double** send_buf, double** recv_buf) {
+long mpi_async_transfer_left_partition(long n_points_local_left, long n_points_global_left, double** send_buf, double** recv_buf, MPI_Request *request) {
     long processes_n_points_left[n_procs];
     int receive_counts[n_procs];
     int receive_displacement[n_procs];
@@ -460,7 +396,7 @@ long mpi_transfer_left_partition(long n_points_local_left, long n_points_global_
     mpi_get_transfer_send_info(receive_counts, send_counts, send_displacement);
 
     /*transfer owned left partition points (send_buf) and receive new owned left partition points at recv_buf */
-    MPI_Alltoallv(
+    MPI_Ialltoallv(
                 *send_buf,              /* starting address of sent data */
                 send_counts,            /* number of elements to send to each process */
                 send_displacement,      /* buffer offset of data elements to send to each process */
@@ -469,7 +405,8 @@ long mpi_transfer_left_partition(long n_points_local_left, long n_points_global_
                 receive_counts,         /* number of elements to receive from each process */
                 receive_displacement,   /* buffer offset of data elements received from each process */
                 MPI_DOUBLE,             /* receive values of type double */
-                communicator            /* sending and receiving to all processes in the current team */
+                communicator,           /* sending and receiving to all processes in the current team */
+                request                 /* place async request result in request */
     );
 
     return size;
@@ -479,7 +416,7 @@ long mpi_transfer_left_partition(long n_points_local_left, long n_points_global_
 Transfers the right partition points to the respective team such that
 the points retain their original order and are evenly split among the new team
 */
-long mpi_transfer_right_partition(long n_points_local_right, long n_points_global_right, double** send_buf, double** recv_buf) {
+long mpi_async_transfer_right_partition(long n_points_local_right, long n_points_global_right, double** send_buf, double** recv_buf, MPI_Request *request) {
     long processes_n_points_right[n_procs];
     int receive_counts[n_procs];
     int send_counts[n_procs];
@@ -503,7 +440,7 @@ long mpi_transfer_right_partition(long n_points_local_right, long n_points_globa
 
 
     /*transfer owned right partition points (send_buf) and receive new owned right partition points at recv_buf */
-    MPI_Alltoallv(
+    MPI_Ialltoallv(
                 *send_buf,              /* starting address of sent data */
                 send_counts,            /* number of elements to send to each process */
                 send_displacement,      /* buffer offset of data elements to send to each process */
@@ -512,7 +449,8 @@ long mpi_transfer_right_partition(long n_points_local_right, long n_points_globa
                 receive_counts,         /* number of elements to receive from each process */
                 receive_displacement,   /* buffer offset of data elements received from each process */
                 MPI_DOUBLE,             /* receive values of type double */
-                communicator            /* sending and receiving to all processes in the current team */
+                communicator,           /* sending and receiving to all processes in the current team */
+                request                 /* place async request result in request */
     );
 
     return size;
@@ -563,8 +501,18 @@ void mpi_build_tree() {
         node_counter++;
     }
 
-    n_points_local_right = mpi_transfer_right_partition(n_points_local_right, n_points_global_right, pts_aux + n_points_local_left, pts);
-    n_points_local_left = mpi_transfer_left_partition(n_points_local_left, n_points_global_left, pts_aux, pts);
+    MPI_Request left_request;
+    MPI_Request right_request;
+
+    /*
+    Transfer partition points to correct team.
+    Do both transfer asynchronously at the same time since they are expensive.
+    */
+    n_points_local_right = mpi_async_transfer_right_partition(n_points_local_right, n_points_global_right, pts_aux + n_points_local_left, pts, &right_request);
+    n_points_local_left = mpi_async_transfer_left_partition(n_points_local_left, n_points_global_left, pts_aux, pts, &left_request);
+
+    MPI_Wait(&left_request, MPI_STATUS_IGNORE);
+    MPI_Wait(&right_request, MPI_STATUS_IGNORE);
 
     if (mpi_split_communication_group()) {
         /* belong to right team */
