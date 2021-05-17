@@ -170,6 +170,9 @@ void mpi_psrs_get_pivots(double *pivots){
     free(global_samples);
 }
 
+/*
+Copies the ortogonal projections present in ortho_array to ortho_array_srt and sorts ortho_array_srt
+*/
 void psrs_sort_local_projections() {
     memcpy(ortho_array_srt, ortho_array, sizeof(double*) * n_points_local);
     qsort(ortho_array_srt, n_points_local, sizeof(double*), compare_point);

@@ -127,7 +127,7 @@ int compare_point(const void* pt1, const void* pt2) {
 
 /*
 Used for quicksort
-Compares a pointer to a double for psrs
+Compares a double
 */
 int compare_double(const void* pt1, const void* pt2) {
     double dpt1 = *((double*) pt1);

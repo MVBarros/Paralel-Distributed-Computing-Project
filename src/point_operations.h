@@ -33,7 +33,7 @@ void copy_point_list(double **a, double **b, long n_points);
 //Compares the x coordenate of the two points
 int compare_point(const void* pt1, const void* pt2);
 
-//Compares the double inside a pointer
+//Compares a double
 int compare_double(const void* pt1, const void* pt2);
 
 #endif
