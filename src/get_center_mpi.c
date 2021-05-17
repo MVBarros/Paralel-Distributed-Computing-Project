@@ -8,7 +8,7 @@
 #include "macros.h"
 #include "point_utils_mpi.h"
 
-extern double ** ortho_array;
+extern double **ortho_array;
 
 extern long n_points_local;
 extern long n_dims;
