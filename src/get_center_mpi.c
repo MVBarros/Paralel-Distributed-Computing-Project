@@ -148,9 +148,17 @@ void mpi_psrs_gather_global_samples(double *local_samples, double *global_sample
 }
 
 /*
-Sorts global_samples and places in pivots n_proc - 1 regular samples
+Computes the pivots for the psrs algorithm by taking n_proc local regular samples of the
+x coordinate of the orthogonal projections, gathering all local regular samples
+and tanking n_proc -1 regular samples of the gathered result
 */
-void psrs_get_pivots(double *global_samples, double *pivots){
+void mpi_psrs_get_pivots(double *pivots){
+    double local_samples[n_procs];
+    double* global_samples = (double*)malloc(sizeof(double) * n_procs * n_procs);
+
+    psrs_calc_local_samples(local_samples);
+    mpi_psrs_gather_global_samples(local_samples, global_samples);
+
     qsort(global_samples, n_procs*n_procs , sizeof(double), compare_double);
 
     long step = n_procs;
@@ -158,6 +166,13 @@ void psrs_get_pivots(double *global_samples, double *pivots){
     for(long i = 0, j = n_procs; i < n_pivots; i++, j += step) {
         pivots[i] = global_samples[j];
     }
+
+    free(global_samples);
+}
+
+void psrs_sort_local_projections() {
+    memcpy(ortho_array_srt, ortho_array, sizeof(double*) * n_points_local);
+    qsort(ortho_array_srt, n_points_local, sizeof(double*), compare_point);
 }
 
 /*
@@ -166,19 +181,9 @@ to sort orthogonal projections and copies the median to out.
 Assumes that n_points_global >= n_procs^2.
 */
 void mpi_psrs_get_center(){
-    double local_samples[n_procs];
     double pivots[n_procs - 1];
 
-    double* global_samples = (double*)malloc(sizeof(double) * n_procs * n_procs);
-
-    /* order local projections */
-    memcpy(ortho_array_srt, ortho_array, sizeof(double*) * n_points_local);
-    qsort(ortho_array_srt, n_points_local, sizeof(double*), compare_point);
-
-    psrs_calc_local_samples(local_samples);
-
-    mpi_psrs_gather_global_samples(local_samples, global_samples);
-
-    psrs_get_pivots(global_samples, pivots);
+    psrs_sort_local_projections();
+    mpi_psrs_get_pivots(pivots);
 
 }
