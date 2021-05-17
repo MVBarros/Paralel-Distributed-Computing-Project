@@ -111,7 +111,7 @@ void psrs_calc_local_samples(double *local_samples) {
 /*
 Place into global_samples the samples gathered at each process (local_samples)
 */
-void mpi_psrs_gather_all_samples(double *local_samples, double *global_samples) {
+void mpi_psrs_gather_global_samples(double *local_samples, double *global_samples) {
     MPI_Allgather(
                 local_samples,      /* send my local regular samples */
                 n_procs,            /* measured n_proc regular samples */
@@ -149,7 +149,7 @@ void mpi_psrs_get_center(){
 
     psrs_calc_local_samples(local_samples);
 
-    mpi_psrs_gather_all_samples(local_samples, global_samples);
+    mpi_psrs_gather_global_samples(local_samples, global_samples);
 
     psrs_get_pivots(global_samples, pivots);
 
