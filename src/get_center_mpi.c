@@ -20,6 +20,7 @@ extern int rank;
 extern int n_procs;
 
 extern MPI_Comm communicator;
+extern double **ortho_array_srt;
 
 /*
 Places in recv_counts how many data elements each process will send in the naive_get_center implementation.
@@ -93,4 +94,27 @@ void mpi_naive_get_center(double *out) {
     free(sorted_projections);
     free(*receive_buffer);
     free(receive_buffer);
+}
+
+void mpi_psrs_take_local_samples(double *sample_array){
+    /*              second step ordel local projections          */
+    int n_sample = n_procs;
+    long step = n_points_local / n_procs;
+    long j = 0;
+    for(int i  = 0; i < n_sample ; i++ , j += step ){
+        sample_array[i] = ortho_array_srt[j][0];        //sort by zero coordenate
+    }
+}
+
+
+void mpi_psrs(){
+    /*              first step ordel local projections          */
+    memcpy(ortho_array_srt, ortho_array, sizeof(double*) * n_points_local);
+    qsort(ortho_array_srt, n_points_local, sizeof(double*), compare_point);    
+
+    double sample_array[n_procs];
+    mpi_psrs_take_local_samples(sample_array);
+    
+
+
 }
