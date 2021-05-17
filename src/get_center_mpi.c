@@ -132,6 +132,11 @@ void psrs_get_pivots(double *global_samples, double *pivots){
     //TODO get pivots
 }
 
+/*
+get_center implementation that uses parallel sorting by regular sampling
+to sort orthogonal projections and copies the median to out.
+Assumes that n_points_global >= n_procs^2.
+*/
 void mpi_psrs_get_center(){
     double local_samples[n_procs];
     double pivots[n_procs - 1];
