@@ -148,12 +148,16 @@ void mpi_psrs_gather_global_samples(double *local_samples, double *global_sample
 }
 
 /*
-Calculate n_proc - 1 pivots of global_samples and places them in pivots
+Sorts global_samples and places in pivots n_proc - 1 regular samples
 */
 void psrs_get_pivots(double *global_samples, double *pivots){
     qsort(global_samples, n_procs*n_procs , sizeof(double), compare_double);
 
-    //TODO get pivots
+    long step = n_procs;
+    long n_pivots = n_procs - 1;
+    for(long i = 0, j = n_procs; i < n_pivots; i++, j += step) {
+        pivots[i] = global_samples[j];
+    }
 }
 
 /*
@@ -176,6 +180,5 @@ void mpi_psrs_get_center(){
     mpi_psrs_gather_global_samples(local_samples, global_samples);
 
     psrs_get_pivots(global_samples, pivots);
-
 
 }
