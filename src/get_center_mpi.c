@@ -106,15 +106,29 @@ void mpi_psrs_take_local_samples(double *sample_array){
     }
 }
 
+void mpi_send_and_receive_local_samples(double* group_sample_array, double* local_sample_array){
+    MPI_Allgather(
+        local_sample_array,
+        n_procs,
+        MPI_DOUBLE,
+        group_sample_array,
+        n_procs,
+        MPI_DOUBLE,
+        communicator
+    );
+}
+
 
 void mpi_psrs(){
     /*              first step ordel local projections          */
     memcpy(ortho_array_srt, ortho_array, sizeof(double*) * n_points_local);
     qsort(ortho_array_srt, n_points_local, sizeof(double*), compare_point);    
 
-    double sample_array[n_procs];
-    mpi_psrs_take_local_samples(sample_array);
+    double local_sample_array[n_procs];
+    mpi_psrs_take_local_samples(local_sample_array);
+
+    double* group_sample_array= (double*)malloc(sizeof(double)*n_procs*n_procs);
     
-
-
+    mpi_send_and_receive_local_samples(group_sample_array, local_sample_array);
+    
 }
