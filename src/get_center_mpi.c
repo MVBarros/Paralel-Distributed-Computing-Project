@@ -9,6 +9,10 @@
 #include "point_utils_mpi.h"
 
 extern double **ortho_array;
+extern double **ortho_array_srt;
+
+extern double *median_left_point;
+extern double *median_right_point;
 
 extern long n_points_local;
 extern long n_dims;
@@ -20,7 +24,6 @@ extern int rank;
 extern int n_procs;
 
 extern MPI_Comm communicator;
-extern double **ortho_array_srt;
 
 /*
 Places in recv_counts how many data elements each process will send in the naive_get_center implementation.
@@ -94,6 +97,27 @@ void mpi_naive_get_center(double *out) {
     free(sorted_projections);
     free(*receive_buffer);
     free(receive_buffer);
+}
+
+/*
+Copies the median projection to out.
+The distribution of projections is given by processes_n_points
+Used by the naive_get_center implementation.
+*/
+void mpi_psrs_copy_median_projection(double **sorted_projections, long *processes_n_points, double *out) {
+    if(n_points_global % 2) {
+        /* is odd */
+        long middle = (n_points_global - 1) / 2;
+        mpi_get_point(sorted_projections, middle, processes_n_points, out);
+    }
+    else {
+        /* is even */
+        long first_middle = (n_points_global / 2) - 1;
+        long second_middle = (n_points_global / 2);
+        mpi_get_point(sorted_projections, first_middle, processes_n_points, median_left_point);
+        mpi_get_point(sorted_projections, second_middle, processes_n_points, median_right_point);
+        middle_point(median_left_point, median_right_point, out);
+    }
 }
 
 /*
