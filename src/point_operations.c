@@ -124,3 +124,22 @@ int compare_point(const void* pt1, const void* pt2) {
         return 0;
     }
 }
+
+/*
+Used for quicksort
+Compares a pointer to a double for psrs
+*/
+int compare_double(const void* pt1, const void* pt2) {
+    double dpt1 = *((double*) pt1);
+    double dpt2 = *((double*) pt2);
+
+    if(dpt1 > dpt2) {
+        return 1;
+    }
+    else if(dpt1 < dpt2) {
+        return -1;
+    }
+    else {
+        return 0;
+    }
+}

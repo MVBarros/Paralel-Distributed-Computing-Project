@@ -97,7 +97,6 @@ void mpi_naive_get_center(double *out) {
 }
 
 void mpi_psrs_take_local_samples(double *sample_array){
-    /*              second step ordel local projections          */
     int n_sample = n_procs;
     long step = n_points_local / n_procs;
     long j = 0;
@@ -118,17 +117,27 @@ void mpi_send_and_receive_local_samples(double* group_sample_array, double* loca
     );
 }
 
+void mpi_order_rcv_samples(double* group_sample_array){
+
+    qsort(group_sample_array, n_procs*n_procs , sizeof(double), compare_double);
+
+}
 
 void mpi_psrs(){
-    /*              first step ordel local projections          */
+    /*              first step order local projections          */
     memcpy(ortho_array_srt, ortho_array, sizeof(double*) * n_points_local);
     qsort(ortho_array_srt, n_points_local, sizeof(double*), compare_point);    
 
+    /*              second step           */
     double local_sample_array[n_procs];
     mpi_psrs_take_local_samples(local_sample_array);
 
+    /*              third step           */
     double* group_sample_array= (double*)malloc(sizeof(double)*n_procs*n_procs);
     
+    /*              forth step           */
     mpi_send_and_receive_local_samples(group_sample_array, local_sample_array);
-    
+
+
+
 }
