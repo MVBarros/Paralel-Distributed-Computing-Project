@@ -96,48 +96,54 @@ void mpi_naive_get_center(double *out) {
     free(receive_buffer);
 }
 
-void mpi_psrs_take_local_samples(double *sample_array){
-    int n_sample = n_procs;
+/*
+Calculate n_proc regular samples of the x coordenated of ortho_array_srt and place them in samples.
+Assumes n_points_local >= n_proc
+*/
+void psrs_calc_local_samples(double *local_samples) {
     long step = n_points_local / n_procs;
     long j = 0;
-    for(int i  = 0; i < n_sample ; i++ , j += step ){
-        sample_array[i] = ortho_array_srt[j][0];        //sort by zero coordenate
+    for(int i = 0; i < n_procs; i++, j += step) {
+        local_samples[i] = ortho_array_srt[j][0];
     }
 }
 
-void mpi_send_and_receive_local_samples(double* group_sample_array, double* local_sample_array){
+/*
+Place into global_samples the samples gathered at each process (local_samples)
+*/
+void mpi_psrs_gather_all_samples(double *local_samples, double *global_samples) {
     MPI_Allgather(
-        local_sample_array,
-        n_procs,
-        MPI_DOUBLE,
-        group_sample_array,
-        n_procs,
-        MPI_DOUBLE,
-        communicator
+                local_samples,      /* send my local regular samples */
+                n_procs,            /* measured n_proc regular samples */
+                MPI_DOUBLE,         /* samples of type double */
+                global_samples,     /* receive all regular samples in global_samples */
+                n_procs,            /* receive n_proc samples from each process */
+                MPI_DOUBLE,         /* samples of type double */
+                communicator        /* send and receive from the whole team */
     );
 }
 
-void mpi_order_rcv_samples(double* group_sample_array){
+void mpi_get_pivot(double *global_samples, double *pivots){
+    qsort(global_samples, n_procs*n_procs , sizeof(double), compare_double);
 
-    qsort(group_sample_array, n_procs*n_procs , sizeof(double), compare_double);
-
+    //TODO get pivots
 }
 
-void mpi_psrs(){
-    /*              first step order local projections          */
+void mpi_psrs_get_center(){
+    double local_samples[n_procs];
+    double pivots[n_procs - 1];
+
+    double* global_samples = (double*)malloc(sizeof(double) * n_procs * n_procs);
+
+    /* order local projections */
     memcpy(ortho_array_srt, ortho_array, sizeof(double*) * n_points_local);
-    qsort(ortho_array_srt, n_points_local, sizeof(double*), compare_point);    
+    qsort(ortho_array_srt, n_points_local, sizeof(double*), compare_point);
 
-    /*              second step           */
-    double local_sample_array[n_procs];
-    mpi_psrs_take_local_samples(local_sample_array);
+    psrs_calc_local_samples(local_samples);
 
-    /*              third step           */
-    double* group_sample_array= (double*)malloc(sizeof(double)*n_procs*n_procs);
-    
-    /*              forth step           */
-    mpi_send_and_receive_local_samples(group_sample_array, local_sample_array);
+    mpi_psrs_gather_all_samples(local_samples, global_samples);
 
+    mpi_get_pivot(global_samples, pivots);
 
 
 }
