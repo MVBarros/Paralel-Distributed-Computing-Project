@@ -152,7 +152,7 @@ Computes the pivots for the psrs algorithm by taking n_proc local regular sample
 x coordinate of the orthogonal projections, gathering all local regular samples
 and tanking n_proc -1 regular samples of the gathered result
 */
-void mpi_psrs_get_pivots(double *pivots){
+void mpi_psrs_get_pivots(double *pivots) {
     double local_samples[n_procs];
     double* global_samples = (double*)malloc(sizeof(double) * n_procs * n_procs);
 
@@ -183,7 +183,7 @@ get_center implementation that uses parallel sorting by regular sampling
 to sort orthogonal projections and copies the median to out.
 Assumes that n_points_global >= n_procs^2.
 */
-void mpi_psrs_get_center(){
+void mpi_psrs_get_center() {
     double pivots[n_procs - 1];
 
     psrs_sort_local_projections();
