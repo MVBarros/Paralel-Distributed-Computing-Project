@@ -200,6 +200,27 @@ void psrs_count_values_to_send(int* send_counts,int* send_displays, double* pivo
     }
 }
 
+
+void psrs_count_values_to_receive(int* send_counts, int* receive_counts, int* receive_displays){
+    MPI_Alltoall(
+        send_counts,
+        1,
+        MPI_INT,
+        receive_counts,
+        1,
+        MPI_INT,
+        communicator
+    );
+
+    int count = 0;
+    for(int i = 0; i < n_procs; i++){
+        receive_displays[i]=count;
+        count += receive_counts[i];
+    }
+
+}
+
+
 /*
 get_center implementation that uses parallel sorting by regular sampling
 to sort orthogonal projections and copies the median to out.
@@ -214,7 +235,7 @@ void mpi_psrs_get_center() {
     int send_counts[n_procs];
     int send_displays[n_procs];
 
-    psrs_count_values_to_send(send_counts,send_displays, pivots);
+    psrs_count_values_to_send(send_counts, send_displays, pivots);
 
 
 }
