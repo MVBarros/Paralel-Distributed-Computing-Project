@@ -286,7 +286,11 @@ Returns the median projection of the dataset
 by sorting the projections based on their x coordinate
 */
 double* mpi_get_center(double *out) {
-    mpi_naive_get_center(out);
+    if (n_points_global < n_procs * n_procs) {
+        mpi_naive_get_center(out);
+    } else {
+        mpi_psrs_get_center(out);
+    }
     return out;
 }
 
