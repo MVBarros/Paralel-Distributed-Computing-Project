@@ -201,7 +201,7 @@ void psrs_count_values_to_send(int* send_counts,int* send_displays, double* pivo
 }
 
 
-int mpi_psrs_count_values_to_receive(int* send_counts, int* receive_counts, int* receive_displays){
+long mpi_psrs_count_values_to_receive(int* send_counts, int* receive_counts, int* receive_displays){
     MPI_Alltoall(
         send_counts,
         1,
@@ -244,13 +244,25 @@ double** mpi_psrs_points_exchange(int* send_counts, int* send_displays, int* rec
     return receive_buffer;
 }
 
+void mpi_psrs_gather_npoints_receive(long* receive_array ,long n_points_receive){
+    MPI_Allgather(
+        &n_points_receive,
+        1,
+        MPI_LONG,
+        receive_array,
+        1,
+        MPI_LONG,
+        communicator
+    );
+}
+
 
 /*
 get_center implementation that uses parallel sorting by regular sampling
 to sort orthogonal projections and copies the median to out.
 Assumes that n_points_global >= n_procs^2.
 */
-void mpi_psrs_get_center() {
+void mpi_psrs_get_center(double* out) {
     double pivots[n_procs - 1];
 
     psrs_sort_local_projections();
@@ -263,9 +275,15 @@ void mpi_psrs_get_center() {
 
     int receive_counts[n_procs];
     int receive_displays[n_procs];
-    int n_points_receive = mpi_psrs_count_values_to_receive(send_counts,receive_counts,receive_displays);
+    long n_points_receive = mpi_psrs_count_values_to_receive(send_counts,receive_counts,receive_displays);
 
     double** receive_buffer = mpi_psrs_points_exchange(send_counts,send_displays,receive_counts,receive_displays,n_points_receive);
     
+    qsort(receive_buffer, n_points_receive, sizeof(double*), compare_point);
+
+    long receive_array[n_procs];
+    mpi_psrs_gather_npoints_receive(receive_array ,n_points_receive);
+
+    mpi_psrs_copy_median_projection(receive_buffer, receive_array, out);
 
 }
