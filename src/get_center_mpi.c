@@ -201,7 +201,7 @@ void psrs_count_values_to_send(int* send_counts,int* send_displays, double* pivo
 }
 
 
-void psrs_count_values_to_receive(int* send_counts, int* receive_counts, int* receive_displays){
+int psrs_count_values_to_receive(int* send_counts, int* receive_counts, int* receive_displays){
     MPI_Alltoall(
         send_counts,
         1,
@@ -218,6 +218,7 @@ void psrs_count_values_to_receive(int* send_counts, int* receive_counts, int* re
         count += receive_counts[i];
     }
 
+    return (receive_displays[n_procs - 1] + receive_counts[n_procs - 1])/n_dims;
 }
 
 
