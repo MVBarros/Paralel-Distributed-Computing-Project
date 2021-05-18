@@ -178,6 +178,28 @@ void psrs_sort_local_projections() {
     qsort(ortho_array_srt, n_points_local, sizeof(double*), compare_point);
 }
 
+void psrs_count_values_to_send(int* send_counts,int* send_displays, double* pivots){
+
+    long j = 0;
+    long k = 0;
+    memset(send_counts, 0, sizeof(int) * n_procs);
+    for(long i = 0; i < n_points_local && j < n_procs-1 ;i++){
+        if (ortho_array_srt[i][0] > pivots[j]){
+            send_counts[j]= i-k;
+            j++;
+            k=i;
+        }
+    }
+    send_counts[j] = n_points_local - k;
+
+    int count = 0;
+    for(int i = 0; i < n_procs; i++){
+        send_counts[i] *= n_dims;
+        send_displays[i]=count;
+        count += send_counts[i];
+    }
+}
+
 /*
 get_center implementation that uses parallel sorting by regular sampling
 to sort orthogonal projections and copies the median to out.
@@ -188,5 +210,11 @@ void mpi_psrs_get_center() {
 
     psrs_sort_local_projections();
     mpi_psrs_get_pivots(pivots);
+    
+    int send_counts[n_procs];
+    int send_displays[n_procs];
+
+    psrs_count_values_to_send(send_counts,send_displays, pivots);
+
 
 }
