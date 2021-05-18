@@ -201,7 +201,7 @@ void psrs_count_values_to_send(int* send_counts,int* send_displays, double* pivo
 }
 
 
-int psrs_count_values_to_receive(int* send_counts, int* receive_counts, int* receive_displays){
+int mpi_psrs_count_values_to_receive(int* send_counts, int* receive_counts, int* receive_displays){
     MPI_Alltoall(
         send_counts,
         1,
@@ -221,6 +221,29 @@ int psrs_count_values_to_receive(int* send_counts, int* receive_counts, int* rec
     return (receive_displays[n_procs - 1] + receive_counts[n_procs - 1])/n_dims;
 }
 
+double** mpi_psrs_points_exchange(int* send_counts, int* send_displays, int* receive_counts, int* receive_displays, long n_points_receive){
+    double** send_buffer = create_array_pts(n_dims, n_points_local);
+    copy_point_list(ortho_array_srt,send_buffer,n_points_local);
+    double** receive_buffer = create_array_pts(n_dims, n_points_receive);
+    
+    MPI_Alltoallv(
+        *send_buffer,
+        send_counts,
+        send_displays,
+        MPI_DOUBLE,
+        receive_buffer,
+        receive_counts,
+        receive_displays,
+        MPI_DOUBLE,
+        communicator
+    );
+
+    free(*send_buffer);
+    free(send_buffer);
+
+    return receive_buffer;
+}
+
 
 /*
 get_center implementation that uses parallel sorting by regular sampling
@@ -238,5 +261,11 @@ void mpi_psrs_get_center() {
 
     psrs_count_values_to_send(send_counts, send_displays, pivots);
 
+    int receive_counts[n_procs];
+    int receive_displays[n_procs];
+    int n_points_receive = mpi_psrs_count_values_to_receive(send_counts,receive_counts,receive_displays);
+
+    double** receive_buffer = mpi_psrs_points_exchange(send_counts,send_displays,receive_counts,receive_displays,n_points_receive);
+    
 
 }
